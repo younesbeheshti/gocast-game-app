@@ -1,13 +1,54 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/younesbeheshti/gocast_game/entity"
 	"github.com/younesbeheshti/gocast_game/repository/postgres"
+	"github.com/younesbeheshti/gocast_game/service/userservice"
+	"io"
+	"net/http"
 )
 
-func main() {
+func userRegisterHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprint(w, "Only POST method is allowed")
+		return
+	}
 
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
+		return
+	}
+
+	var req userservice.RegisterRequest
+	err = json.Unmarshal(data, &req)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
+		return
+	}
+
+	psqlRepo := postgres.New()
+	userSvc := userservice.New(psqlRepo)
+
+	fmt.Println(req)
+	_, err = userSvc.Register(req)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
+		return
+	}
+
+	w.Write([]byte(fmt.Sprintf(`{"success": "%s"}`, "OK")))
+
+}
+
+func main() {
+	http.HandleFunc("/users/register", userRegisterHandler)
+
+	fmt.Println("Listening on port 8080")
+	http.ListenAndServe(":8080", nil)
 }
 
 func testDatabase() {
