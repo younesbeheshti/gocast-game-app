@@ -11,6 +11,7 @@ import (
 type Repository interface {
 	IsPhoneNumberUnique(phoneNumber string) (bool, error)
 	Register(u entity.User) (*entity.User, error)
+	GetUserByPhoneNumber(phoneNumber string) (*entity.User, bool, error)
 }
 
 type Service struct {
@@ -64,10 +65,10 @@ func (s *Service) Register(req RegisterRequest) (*RegisterResponse, error) {
 
 	//create new user in storage
 	user := entity.User{
-		ID:          0,
-		PhoneNumber: req.PhoneNumber,
-		Name:        req.Name,
-		Password:    getMD5Hash(req.Password),
+		ID:             0,
+		PhoneNumber:    req.PhoneNumber,
+		Name:           req.Name,
+		HashedPassword: getMD5Hash(req.Password),
 	}
 
 	createdUser, err := s.repo.Register(user)
@@ -76,6 +77,36 @@ func (s *Service) Register(req RegisterRequest) (*RegisterResponse, error) {
 	}
 	//return created user
 	return &RegisterResponse{*createdUser}, nil
+}
+
+type LoginRequest struct {
+	PhoneNumber string `json:"phone_number"`
+	Password    string `json:"password"`
+}
+
+type LoginResponse struct{}
+
+func (s *Service) Login(req LoginRequest) (*LoginResponse, error) {
+
+	// TODO - it would be better for user to have two separate methods for existence and getUserBYPhoneNumber
+
+	//check the existence of phone number from repository
+	//get the user by phone number
+	user, exist, err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
+	if err != nil {
+		return nil, fmt.Errorf("unexpected error %w", err)
+	}
+
+	if !exist {
+		return nil, fmt.Errorf("username or password is invalid")
+	}
+
+	//compare user.pass with req.pass
+	if user.HashedPassword != getMD5Hash(req.Password) {
+		return nil, fmt.Errorf("username or passwword is invalid")
+	}
+
+	return &LoginResponse{}, nil
 }
 
 func getMD5Hash(text string) string {

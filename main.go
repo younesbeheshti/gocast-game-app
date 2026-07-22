@@ -44,8 +44,39 @@ func userRegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func userLoginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprint(w, "Only POST method is allowed")
+		return
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
+		return
+	}
+
+	var req userservice.LoginRequest
+	err = json.Unmarshal(data, &req)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
+		return
+	}
+
+	psqlRepo := postgres.New()
+	userSvc := userservice.New(psqlRepo)
+	_, err = userSvc.Login(req)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
+		return
+	}
+	w.Write([]byte(fmt.Sprintf(`{"success": "%s"}`, "user credentials is ok")))
+}
+
 func main() {
 	http.HandleFunc("/users/register", userRegisterHandler)
+	http.HandleFunc("/users/login", userLoginHandler)
 
 	fmt.Println("Listening on port 8080")
 	http.ListenAndServe(":8080", nil)
