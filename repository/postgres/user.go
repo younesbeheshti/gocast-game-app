@@ -22,11 +22,12 @@ func (d *PostgresDB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
 }
 func (d *PostgresDB) Register(u entity.User) (*entity.User, error) {
 	err := d.db.QueryRow(
-		`INSERT INTO users(name, phone_number)
-		 VALUES($1, $2)
+		`INSERT INTO users(name, phone_number, password)
+		 VALUES($1, $2, $3)
 		 RETURNING id`,
 		u.Name,
 		u.PhoneNumber,
+		u.Password,
 	).Scan(&u.ID)
 
 	if err != nil {

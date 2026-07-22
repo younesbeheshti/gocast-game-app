@@ -1,6 +1,8 @@
 package userservice
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"github.com/younesbeheshti/gocast_game/entity"
 	"github.com/younesbeheshti/gocast_game/pkg/phonenumber"
@@ -22,6 +24,7 @@ func New(repo Repository) *Service {
 type RegisterRequest struct {
 	Name        string `json:"name"`
 	PhoneNumber string `json:"phone_number"`
+	Password    string `json:"password"`
 }
 
 type RegisterResponse struct {
@@ -52,11 +55,19 @@ func (s *Service) Register(req RegisterRequest) (*RegisterResponse, error) {
 		return nil, fmt.Errorf("name is too short")
 	}
 
+	// TODO - check the password with regex pattern
+	// validate password
+	if len(req.Password) < 8 {
+		return nil, fmt.Errorf("password is too short, at least 8 is required")
+
+	}
+
 	//create new user in storage
 	user := entity.User{
 		ID:          0,
 		PhoneNumber: req.PhoneNumber,
 		Name:        req.Name,
+		Password:    getMD5Hash(req.Password),
 	}
 
 	createdUser, err := s.repo.Register(user)
@@ -65,4 +76,10 @@ func (s *Service) Register(req RegisterRequest) (*RegisterResponse, error) {
 	}
 	//return created user
 	return &RegisterResponse{*createdUser}, nil
+}
+
+func getMD5Hash(text string) string {
+	hash := md5.Sum([]byte(text))
+	return hex.EncodeToString(hash[:])
+
 }
