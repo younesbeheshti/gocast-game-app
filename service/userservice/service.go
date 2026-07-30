@@ -4,22 +4,26 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/younesbeheshti/gocast_game/entity"
 	"github.com/younesbeheshti/gocast_game/pkg/phonenumber"
+	"time"
 )
 
 type Repository interface {
 	IsPhoneNumberUnique(phoneNumber string) (bool, error)
 	Register(u entity.User) (*entity.User, error)
 	GetUserByPhoneNumber(phoneNumber string) (*entity.User, bool, error)
+	GetUserByID(uint) (*entity.User, error)
 }
 
 type Service struct {
-	repo Repository
+	signKey string
+	repo    Repository
 }
 
-func New(repo Repository) *Service {
-	return &Service{repo: repo}
+func New(repo Repository, signKey string) *Service {
+	return &Service{repo: repo, signKey: signKey}
 }
 
 type RegisterRequest struct {
@@ -84,7 +88,9 @@ type LoginRequest struct {
 	Password    string `json:"password"`
 }
 
-type LoginResponse struct{}
+type LoginResponse struct {
+	AccessToken string `json:"access_token"`
+}
 
 func (s *Service) Login(req LoginRequest) (*LoginResponse, error) {
 
@@ -106,11 +112,54 @@ func (s *Service) Login(req LoginRequest) (*LoginResponse, error) {
 		return nil, fmt.Errorf("username or passwword is invalid")
 	}
 
-	return &LoginResponse{}, nil
+	// generate jwt
+	token, err := createToken(user.ID, s.signKey)
+	if err != nil {
+		return nil, fmt.Errorf("unexpected error %w", err)
+	}
+
+	return &LoginResponse{AccessToken: token}, nil
 }
 
 func getMD5Hash(text string) string {
 	hash := md5.Sum([]byte(text))
 	return hex.EncodeToString(hash[:])
 
+}
+
+type ProfileRequest struct {
+	UserID uint `json:"user_id"`
+}
+type ProfileResponse struct {
+	Name string `json:"name"`
+}
+
+func (s *Service) GetProfile(req ProfileRequest) (*ProfileResponse, error) {
+	//getUserByID
+	user, err := s.repo.GetUserByID(req.UserID)
+	if err != nil {
+
+		//TODO: can use rich error
+		return nil, fmt.Errorf("unexpected error %w", err)
+	}
+
+	return &ProfileResponse{user.Name}, nil
+}
+
+type Claims struct {
+	jwt.RegisteredClaims
+	UserID uint
+}
+
+func createToken(userID uint, signKey string) (string, error) {
+	t := jwt.New(jwt.SigningMethodHS256)
+
+	t.Claims = &Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+		},
+		UserID: userID,
+	}
+
+	return t.SignedString([]byte(signKey))
 }

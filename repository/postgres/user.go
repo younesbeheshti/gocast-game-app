@@ -7,10 +7,24 @@ import (
 	"time"
 )
 
+func (d *PostgresDB) GetUserByID(userID uint) (*entity.User, error) {
+	row := d.db.QueryRow(`select * from users where id=$1`, userID)
+	user, err := scanUser(row)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("user not found")
+		}
+		return nil, fmt.Errorf("cant scan query result: %w", err)
+
+	}
+
+	return user, nil
+}
+
 func (d *PostgresDB) GetUserByPhoneNumber(phoneNumber string) (*entity.User, bool, error) {
-	user := &entity.User{}
-	var createdAt time.Time
-	err := d.db.QueryRow(`select * from users where phone_number=$1`, phoneNumber).Scan(&user.ID, &user.Name, &user.PhoneNumber, &user.HashedPassword, &createdAt)
+	row := d.db.QueryRow(`select * from users where phone_number=$1`, phoneNumber)
+	user, err := scanUser(row)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, false, nil
@@ -23,9 +37,9 @@ func (d *PostgresDB) GetUserByPhoneNumber(phoneNumber string) (*entity.User, boo
 }
 
 func (d *PostgresDB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
-	user := entity.User{}
-	var createdAt time.Time
-	err := d.db.QueryRow(`select * from users where phone_number=$1`, phoneNumber).Scan(&user.ID, &user.Name, &user.PhoneNumber, &user.HashedPassword, &createdAt)
+	row := d.db.QueryRow(`select * from users where phone_number=$1`, phoneNumber)
+	_, err := scanUser(row)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return true, nil
@@ -50,4 +64,10 @@ func (d *PostgresDB) Register(u entity.User) (*entity.User, error) {
 	}
 
 	return &u, nil
+}
+func scanUser(rows *sql.Row) (*entity.User, error) {
+	var user entity.User
+	var createdAt time.Time
+	err := rows.Scan(&user.ID, &user.Name, &user.PhoneNumber, &user.HashedPassword, &createdAt)
+	return &user, err
 }
