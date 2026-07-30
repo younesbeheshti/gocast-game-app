@@ -4,10 +4,8 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/younesbeheshti/gocast_game/entity"
 	"github.com/younesbeheshti/gocast_game/pkg/phonenumber"
-	"time"
 )
 
 type Repository interface {
@@ -17,13 +15,18 @@ type Repository interface {
 	GetUserByID(uint) (*entity.User, error)
 }
 
-type Service struct {
-	signKey string
-	repo    Repository
+type AuthGenerator interface {
+	CreateAccessToken(u entity.User) (string, error)
+	CreateRefreshToken(u entity.User) (string, error)
 }
 
-func New(repo Repository, signKey string) *Service {
-	return &Service{repo: repo, signKey: signKey}
+type Service struct {
+	auth AuthGenerator
+	repo Repository
+}
+
+func New(repo Repository, authGenerator AuthGenerator) *Service {
+	return &Service{repo: repo, auth: authGenerator}
 }
 
 type RegisterRequest struct {
@@ -89,7 +92,8 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	AccessToken string `json:"access_token"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (s *Service) Login(req LoginRequest) (*LoginResponse, error) {
@@ -113,12 +117,17 @@ func (s *Service) Login(req LoginRequest) (*LoginResponse, error) {
 	}
 
 	// generate jwt
-	token, err := createToken(user.ID, s.signKey)
+	accessToken, err := s.auth.CreateAccessToken(*user)
 	if err != nil {
 		return nil, fmt.Errorf("unexpected error %w", err)
 	}
 
-	return &LoginResponse{AccessToken: token}, nil
+	refreshToken, err := s.auth.CreateAccessToken(*user)
+	if err != nil {
+		return nil, fmt.Errorf("unexpected error %w", err)
+	}
+
+	return &LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }
 
 func getMD5Hash(text string) string {
@@ -144,22 +153,4 @@ func (s *Service) GetProfile(req ProfileRequest) (*ProfileResponse, error) {
 	}
 
 	return &ProfileResponse{user.Name}, nil
-}
-
-type Claims struct {
-	jwt.RegisteredClaims
-	UserID uint
-}
-
-func createToken(userID uint, signKey string) (string, error) {
-	t := jwt.New(jwt.SigningMethodHS256)
-
-	t.Claims = &Claims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
-		},
-		UserID: userID,
-	}
-
-	return t.SignedString([]byte(signKey))
 }

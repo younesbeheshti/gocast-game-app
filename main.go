@@ -1,17 +1,24 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/younesbeheshti/gocast_game/entity"
 	"github.com/younesbeheshti/gocast_game/repository/postgres"
+	"github.com/younesbeheshti/gocast_game/service/authservice"
 	"github.com/younesbeheshti/gocast_game/service/userservice"
 	"io"
 	"net/http"
+	"time"
 )
 
 const (
-	JwtSecret = "secret"
+	JwtSecret                  = "secret"
+	AccessToken                = "access_token"
+	RefreshToken               = "refresh_token"
+	AccessTokenExpireDuration  = time.Hour * 24
+	RefreshTokenExpireDuration = time.Hour * 24 * 7
 )
 
 func userProfileHandler(w http.ResponseWriter, r *http.Request) {
@@ -22,24 +29,13 @@ func userProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := userservice.ProfileRequest{
-		UserID: 0,
-	}
+	userId := r.Context().Value("user_id")
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
-		return
-	}
-
-	err = json.Unmarshal(data, &req)
-	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
-		return
-	}
+	req := userservice.ProfileRequest{UserID: userId.(uint)}
 
 	psqlRepo := postgres.New()
-	userSvc := userservice.New(psqlRepo, JwtSecret)
+	authSvc := authservice.New(JwtSecret, AccessToken, RefreshToken, AccessTokenExpireDuration, RefreshTokenExpireDuration)
+	userSvc := userservice.New(psqlRepo, authSvc)
 
 	resp, err := userSvc.GetProfile(req)
 	if err != nil {
@@ -47,7 +43,7 @@ func userProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err = json.Marshal(resp)
+	data, err := json.Marshal(resp)
 	if err != nil {
 		w.Write([]byte(fmt.Sprintf(`{"error": "%v"}`, err.Error())))
 		return
@@ -77,7 +73,8 @@ func userRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	psqlRepo := postgres.New()
-	userSvc := userservice.New(psqlRepo, JwtSecret)
+	authSvc := authservice.New(JwtSecret, AccessToken, RefreshToken, AccessTokenExpireDuration, RefreshTokenExpireDuration)
+	userSvc := userservice.New(psqlRepo, authSvc)
 
 	fmt.Println(req)
 	_, err = userSvc.Register(req)
@@ -112,7 +109,8 @@ func userLoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	psqlRepo := postgres.New()
-	userSvc := userservice.New(psqlRepo, JwtSecret)
+	authSvc := authservice.New(JwtSecret, AccessToken, RefreshToken, AccessTokenExpireDuration, RefreshTokenExpireDuration)
+	userSvc := userservice.New(psqlRepo, authSvc)
 	resp, err := userSvc.Login(req)
 	if err != nil {
 		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
@@ -130,7 +128,10 @@ func userLoginHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/users/register", userRegisterHandler)
 	http.HandleFunc("/users/login", userLoginHandler)
-	http.HandleFunc("/users/profile", userProfileHandler)
+	http.Handle(
+		"/users/profile",
+		middleware(http.HandlerFunc(userProfileHandler)),
+	)
 
 	fmt.Println("Listening on port 8080")
 	http.ListenAndServe(":8080", nil)
@@ -143,4 +144,27 @@ func testDatabase() {
 
 	isUnique, err := psql.IsPhoneNumberUnique(u.PhoneNumber + "23")
 	fmt.Println(isUnique, err)
+}
+
+func middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authToken := r.Header.Get("Authorization")
+		authSvc := authservice.New(JwtSecret, AccessToken, RefreshToken, AccessTokenExpireDuration, RefreshTokenExpireDuration)
+
+		claims, err := authSvc.ParseToken(authToken)
+		fmt.Println(claims, err)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			fmt.Fprint(w, "Unauthorized")
+			return
+		}
+
+		ctx := context.WithValue(
+			r.Context(),
+			"user_id",
+			claims.UserID,
+		)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
