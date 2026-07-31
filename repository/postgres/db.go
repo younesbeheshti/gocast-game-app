@@ -23,8 +23,8 @@ type PostgresDB struct {
 }
 
 func New(config Config) PostgresDB {
-	//dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", config.Username, config.Password, config.Host, config.Port, config.Database, config.Sslmode)
-	dsn := "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable"
+	//dsn := "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable"
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", config.Username, config.Password, config.Host, config.Port, config.Database, config.Sslmode)
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {

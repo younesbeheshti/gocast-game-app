@@ -17,38 +17,6 @@ const (
 	RefreshTokenExpireDuration = time.Hour * 24 * 7
 )
 
-//
-//func userProfileHandler(w http.ResponseWriter, r *http.Request) {
-//	fmt.Println(r.Method)
-//	if r.Method != http.MethodGet {
-//		w.WriteHeader(http.StatusMethodNotAllowed)
-//		fmt.Fprint(w, "Method not allowed")
-//		return
-//	}
-//
-//	userId := r.Context().Value("user_id")
-//
-//	req := userservice.ProfileRequest{UserID: userId.(uint)}
-//
-//	psqlRepo := postgres.New()
-//	authSvc := authservice.New(JwtSecret, AccessToken, RefreshToken, AccessTokenExpireDuration, RefreshTokenExpireDuration)
-//	userSvc := userservice.New(psqlRepo, authSvc)
-//
-//	resp, err := userSvc.GetProfile(req)
-//	if err != nil {
-//		w.Write([]byte(fmt.Sprintf(`{"error": "%v"}`, err.Error())))
-//		return
-//	}
-//
-//	data, err := json.Marshal(resp)
-//	if err != nil {
-//		w.Write([]byte(fmt.Sprintf(`{"error": "%v"}`, err.Error())))
-//		return
-//	}
-//
-//	w.Write(data)
-//}
-
 func main() {
 
 	cfg := config.Config{
@@ -69,17 +37,15 @@ func main() {
 			Sslmode:  "disable",
 		}}
 
+	// TODO - add command for apply
+	//mgr := migrator.New(cfg.Psql)
+	//mgr.Up()
+
 	userSvc, authSvc := setupServices(cfg)
 
 	server := httpserver.New(cfg, authSvc, userSvc)
 
 	server.Serve()
-
-	//http.HandleFunc("/users/login", userLoginHandler)
-	//http.Handle(
-	//	"/users/profile",
-	//	Middleware(http.HandlerFunc(userProfileHandler)),
-	//)
 
 }
 
