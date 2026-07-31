@@ -7,36 +7,36 @@ import (
 	"time"
 )
 
-type Service struct {
-	signKey            string
-	accessDurationTime time.Duration
-	refreshDuration    time.Duration
-	accessSubject      string
-	refreshSubject     string
+type Config struct {
+	SignKey            string
+	AccessDurationTime time.Duration
+	RefreshDuration    time.Duration
+	AccessSubject      string
+	RefreshSubject     string
 }
 
-func New(signKey, accessSubject, refreshSubject string, accessDurationTime, refreshDurationTime time.Duration) *Service {
+type Service struct {
+	config Config
+}
+
+func New(config Config) *Service {
 	return &Service{
-		signKey:            signKey,
-		accessDurationTime: accessDurationTime,
-		refreshDuration:    refreshDurationTime,
-		accessSubject:      accessSubject,
-		refreshSubject:     refreshSubject,
+		config: config,
 	}
 }
 
 func (s *Service) CreateAccessToken(user entity.User) (string, error) {
-	return s.createToken(user.ID, s.accessSubject, s.accessDurationTime)
+	return s.createToken(user.ID, s.config.AccessSubject, s.config.AccessDurationTime)
 }
 func (s *Service) CreateRefreshToken(user entity.User) (string, error) {
-	return s.createToken(user.ID, s.refreshSubject, s.refreshDuration)
+	return s.createToken(user.ID, s.config.RefreshSubject, s.config.RefreshDuration)
 }
 func (s *Service) ParseToken(tokenString string) (*Claims, error) {
 
 	tokenStr := strings.Replace(tokenString, "Bearer ", "", 1)
 
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(s.signKey), nil
+		return []byte(s.config.SignKey), nil
 	})
 
 	if err != nil {
@@ -61,5 +61,5 @@ func (s *Service) createToken(userID uint, subject string, expireDuration time.D
 		UserID: userID,
 	}
 
-	return t.SignedString([]byte(s.signKey))
+	return t.SignedString([]byte(s.config.SignKey))
 }

@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/labstack/echo/v5"
+	"github.com/younesbeheshti/gocast_game/config"
+	"github.com/younesbeheshti/gocast_game/delivery/httpserver"
 	"github.com/younesbeheshti/gocast_game/entity"
 	"github.com/younesbeheshti/gocast_game/repository/postgres"
 	"github.com/younesbeheshti/gocast_game/service/authservice"
@@ -51,41 +54,6 @@ func userProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(data)
 }
-func userRegisterHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("register")
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprint(w, "Only POST method is allowed")
-		return
-	}
-
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
-		return
-	}
-
-	var req userservice.RegisterRequest
-	err = json.Unmarshal(data, &req)
-	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
-		return
-	}
-
-	psqlRepo := postgres.New()
-	authSvc := authservice.New(JwtSecret, AccessToken, RefreshToken, AccessTokenExpireDuration, RefreshTokenExpireDuration)
-	userSvc := userservice.New(psqlRepo, authSvc)
-
-	fmt.Println(req)
-	_, err = userSvc.Register(req)
-	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
-		return
-	}
-
-	w.Write([]byte(fmt.Sprintf(`{"success": "%s"}`, "OK")))
-
-}
 
 func userLoginHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("login")
@@ -126,15 +94,45 @@ func userLoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/users/register", userRegisterHandler)
+
+	cfg := config.Config{
+		HttpServer: config.HttpServer{Port: 8080},
+		Auth: authservice.Config{
+			SignKey:            JwtSecret,
+			AccessSubject:      AccessToken,
+			RefreshSubject:     RefreshToken,
+			AccessDurationTime: AccessTokenExpireDuration,
+			RefreshDuration:    RefreshTokenExpireDuration,
+		},
+		Psql: postgres.Config{
+			Host:     "localhost",
+			Port:     5432,
+			Username: "postgres",
+			Password: "postgres",
+			Database: "postgres",
+			Sslmode:  "disable",
+		}}
+
+	userSvc, authSvc := setupServices(cfg)
+
+	server := httpserver.New(cfg, authSvc, userSvc)
+
+	server.Serve()
+
 	http.HandleFunc("/users/login", userLoginHandler)
 	http.Handle(
 		"/users/profile",
-		middleware(http.HandlerFunc(userProfileHandler)),
+		Middleware(http.HandlerFunc(userProfileHandler)),
 	)
 
-	fmt.Println("Listening on port 8080")
-	http.ListenAndServe(":8080", nil)
+}
+
+func setupServices(cfg config.Config) (*userservice.Service, *authservice.Service) {
+	authSvc := authservice.New(cfg.Auth)
+	psqlRepo := postgres.New(cfg.Psql)
+	userSvc := userservice.New(psqlRepo, authSvc)
+
+	return userSvc, authSvc
 }
 
 func testDatabase() {
@@ -146,7 +144,7 @@ func testDatabase() {
 	fmt.Println(isUnique, err)
 }
 
-func middleware(next http.Handler) http.Handler {
+func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authToken := r.Header.Get("Authorization")
 		authSvc := authservice.New(JwtSecret, AccessToken, RefreshToken, AccessTokenExpireDuration, RefreshTokenExpireDuration)
