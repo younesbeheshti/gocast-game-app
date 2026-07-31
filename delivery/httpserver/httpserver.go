@@ -12,11 +12,11 @@ import (
 
 type Server struct {
 	config  config.Config
-	authSvc *authservice.Service
-	userSvc *userservice.Service
+	authSvc authservice.Service
+	userSvc userservice.Service
 }
 
-func New(config config.Config, authSvc *authservice.Service, userSvc *userservice.Service) *Server {
+func New(config config.Config, authSvc authservice.Service, userSvc userservice.Service) *Server {
 	return &Server{
 		config:  config,
 		authSvc: authSvc,
@@ -24,14 +24,18 @@ func New(config config.Config, authSvc *authservice.Service, userSvc *userservic
 	}
 }
 
-func (s *Server) Serve() {
+func (s Server) Serve() {
 	e := echo.New()
 
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 
 	e.GET("/health_check", s.healthCheck)
-	e.POST("/users/register", s.userRegister)
+
+	usersGroup := e.Group("/users")
+	usersGroup.POST("/register", s.userRegisterHandler)
+	usersGroup.POST("/login", s.userLoginHandler)
+	usersGroup.GET("/userprofile", s.userProfileHandler)
 
 	if err := e.Start(fmt.Sprintf(":%d", s.config.HttpServer.Port)); err != nil {
 		slog.Error("failed to start server", "error", err)

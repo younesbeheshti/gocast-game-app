@@ -25,8 +25,8 @@ type Service struct {
 	repo Repository
 }
 
-func New(repo Repository, authGenerator AuthGenerator) *Service {
-	return &Service{repo: repo, auth: authGenerator}
+func New(repo Repository, authGenerator AuthGenerator) Service {
+	return Service{repo: repo, auth: authGenerator}
 }
 
 type RegisterRequest struct {
@@ -36,10 +36,10 @@ type RegisterRequest struct {
 }
 
 type RegisterResponse struct {
-	User UserResponse `json:"user"`
+	User UserInfo `json:"user"`
 }
 
-type UserResponse struct {
+type UserInfo struct {
 	ID          uint   `json:"id"`
 	PhoneNumber string `json:"phone_number"`
 	Name        string `json:"name"`
@@ -91,7 +91,7 @@ func (s *Service) Register(req RegisterRequest) (*RegisterResponse, error) {
 
 	//return created user
 	return &RegisterResponse{
-		User: UserResponse{
+		User: UserInfo{
 			ID:          createdUser.ID,
 			PhoneNumber: createdUser.PhoneNumber,
 			Name:        createdUser.Name,
@@ -103,9 +103,13 @@ type LoginRequest struct {
 	Password    string `json:"password"`
 }
 
-type LoginResponse struct {
+type Tokens struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
+}
+type LoginResponse struct {
+	User   UserInfo `json:"user"`
+	Tokens Tokens   `json:"tokens"`
 }
 
 func (s *Service) Login(req LoginRequest) (*LoginResponse, error) {
@@ -139,7 +143,13 @@ func (s *Service) Login(req LoginRequest) (*LoginResponse, error) {
 		return nil, fmt.Errorf("unexpected error %w", err)
 	}
 
-	return &LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken}, nil
+	return &LoginResponse{User: UserInfo{ID: user.ID,
+		PhoneNumber: user.PhoneNumber,
+		Name:        user.Name,
+	},
+		Tokens: Tokens{AccessToken: accessToken,
+			RefreshToken: refreshToken},
+	}, nil
 }
 
 func getMD5Hash(text string) string {

@@ -19,19 +19,19 @@ type Service struct {
 	config Config
 }
 
-func New(config Config) *Service {
-	return &Service{
+func New(config Config) Service {
+	return Service{
 		config: config,
 	}
 }
 
-func (s *Service) CreateAccessToken(user entity.User) (string, error) {
+func (s Service) CreateAccessToken(user entity.User) (string, error) {
 	return s.createToken(user.ID, s.config.AccessSubject, s.config.AccessDurationTime)
 }
-func (s *Service) CreateRefreshToken(user entity.User) (string, error) {
+func (s Service) CreateRefreshToken(user entity.User) (string, error) {
 	return s.createToken(user.ID, s.config.RefreshSubject, s.config.RefreshDuration)
 }
-func (s *Service) ParseToken(tokenString string) (*Claims, error) {
+func (s Service) ParseToken(tokenString string) (*Claims, error) {
 
 	tokenStr := strings.Replace(tokenString, "Bearer ", "", 1)
 
@@ -50,7 +50,7 @@ func (s *Service) ParseToken(tokenString string) (*Claims, error) {
 	}
 }
 
-func (s *Service) createToken(userID uint, subject string, expireDuration time.Duration) (string, error) {
+func (s Service) createToken(userID uint, subject string, expireDuration time.Duration) (string, error) {
 	t := jwt.New(jwt.SigningMethodHS256)
 
 	t.Claims = &Claims{

@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func (d *PostgresDB) GetUserByID(userID uint) (*entity.User, error) {
+func (d PostgresDB) GetUserByID(userID uint) (*entity.User, error) {
 	row := d.db.QueryRow(`select * from users where id=$1`, userID)
 	user, err := scanUser(row)
 	if err != nil {
@@ -21,7 +21,7 @@ func (d *PostgresDB) GetUserByID(userID uint) (*entity.User, error) {
 	return user, nil
 }
 
-func (d *PostgresDB) GetUserByPhoneNumber(phoneNumber string) (*entity.User, bool, error) {
+func (d PostgresDB) GetUserByPhoneNumber(phoneNumber string) (*entity.User, bool, error) {
 	row := d.db.QueryRow(`select * from users where phone_number=$1`, phoneNumber)
 	user, err := scanUser(row)
 
@@ -36,7 +36,7 @@ func (d *PostgresDB) GetUserByPhoneNumber(phoneNumber string) (*entity.User, boo
 	return user, true, nil
 }
 
-func (d *PostgresDB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
+func (d PostgresDB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
 	row := d.db.QueryRow(`select * from users where phone_number=$1`, phoneNumber)
 	_, err := scanUser(row)
 
@@ -49,7 +49,7 @@ func (d *PostgresDB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
 	}
 	return false, nil
 }
-func (d *PostgresDB) Register(u entity.User) (*entity.User, error) {
+func (d PostgresDB) Register(u entity.User) (*entity.User, error) {
 	err := d.db.QueryRow(
 		`INSERT INTO users(name, phone_number, password)
 		 VALUES($1, $2, $3)
