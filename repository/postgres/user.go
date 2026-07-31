@@ -68,6 +68,6 @@ func (d PostgresDB) Register(u entity.User) (*entity.User, error) {
 func scanUser(rows *sql.Row) (*entity.User, error) {
 	var user entity.User
 	var createdAt time.Time
-	err := rows.Scan(&user.ID, &user.Name, &user.PhoneNumber, &user.HashedPassword, &createdAt)
+	err := rows.Scan(&user.ID, &user.Name, &user.PhoneNumber, &createdAt, &user.HashedPassword)
 	return &user, err
 }

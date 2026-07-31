@@ -1,3 +1,4 @@
+-- +migrate Up
 CREATE TABLE users (
                        ID SERIAL PRIMARY KEY,
                        name VARCHAR(255) NOT NULL,
@@ -5,4 +6,5 @@ CREATE TABLE users (
                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE users add column password VARCHAR(255) NOT NULL;
+-- +migrate Down
+DROP TABLE users;
