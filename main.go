@@ -6,6 +6,7 @@ import (
 	"github.com/younesbeheshti/gocast_game/repository/postgres"
 	"github.com/younesbeheshti/gocast_game/service/authservice"
 	"github.com/younesbeheshti/gocast_game/service/userservice"
+	"github.com/younesbeheshti/gocast_game/validator/uservalidator"
 	"time"
 )
 
@@ -41,20 +42,20 @@ func main() {
 	//mgr := migrator.New(cfg.Psql)
 	//mgr.Up()
 
-	userSvc, authSvc := setupServices(cfg)
+	userSvc, authSvc, userValidator := setupServices(cfg)
 
-	server := httpserver.New(cfg, authSvc, userSvc)
+	server := httpserver.New(cfg, authSvc, userSvc, userValidator)
 
 	server.Serve()
 
 }
 
-func setupServices(cfg config.Config) (userservice.Service, authservice.Service) {
+func setupServices(cfg config.Config) (userservice.Service, authservice.Service, uservalidator.Validator) {
 	authSvc := authservice.New(cfg.Auth)
 	psqlRepo := postgres.New(cfg.Psql)
 	userSvc := userservice.New(psqlRepo, authSvc)
-
-	return userSvc, authSvc
+	uV := uservalidator.New(psqlRepo)
+	return userSvc, authSvc, uV
 }
 
 //func testDatabase() {

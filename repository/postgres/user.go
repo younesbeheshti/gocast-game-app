@@ -4,17 +4,20 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/younesbeheshti/gocast_game/entity"
+	"github.com/younesbeheshti/gocast_game/pkg/richerror"
 	"time"
 )
 
 func (d PostgresDB) GetUserByID(userID uint) (*entity.User, error) {
+	const op = "psql.GetUserByID"
 	row := d.db.QueryRow(`select * from users where id=$1`, userID)
 	user, err := scanUser(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("user not found")
+			return nil, richerror.New(op).WithErr(err).WithMessage("record not found").WithKind(richerror.KindNotFound)
+
 		}
-		return nil, fmt.Errorf("cant scan query result: %w", err)
+		return nil, richerror.New(op).WithErr(err).WithMessage("can't scan query result").WithKind(richerror.KindUnexpected)
 
 	}
 
@@ -22,6 +25,7 @@ func (d PostgresDB) GetUserByID(userID uint) (*entity.User, error) {
 }
 
 func (d PostgresDB) GetUserByPhoneNumber(phoneNumber string) (*entity.User, bool, error) {
+	const op = "psql.GetUserByPhoneNumber"
 	row := d.db.QueryRow(`select * from users where phone_number=$1`, phoneNumber)
 	user, err := scanUser(row)
 
@@ -29,7 +33,8 @@ func (d PostgresDB) GetUserByPhoneNumber(phoneNumber string) (*entity.User, bool
 		if err == sql.ErrNoRows {
 			return nil, false, nil
 		}
-		return nil, false, fmt.Errorf("cant scan query result: %w", err)
+		//fmt.Errorf("cant scan query result: %w", err)
+		return nil, false, richerror.New(op).WithErr(err).WithMessage("can't scan the query result").WithKind(richerror.KindUnexpected)
 
 	}
 
@@ -37,6 +42,9 @@ func (d PostgresDB) GetUserByPhoneNumber(phoneNumber string) (*entity.User, bool
 }
 
 func (d PostgresDB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
+
+	const op = "psql.IsPhoneNumberUnique"
+
 	row := d.db.QueryRow(`select * from users where phone_number=$1`, phoneNumber)
 	_, err := scanUser(row)
 
@@ -45,11 +53,14 @@ func (d PostgresDB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
 			return true, nil
 		}
 
-		return false, fmt.Errorf("cant scan query result: %w", err)
+		return false, richerror.New(op).WithErr(err).WithKind(richerror.KindUnexpected).
+			WithMessage("can't scan the query result").WithKind(richerror.KindUnexpected)
 	}
 	return false, nil
 }
 func (d PostgresDB) Register(u entity.User) (*entity.User, error) {
+	const op = "psql.Register"
+
 	err := d.db.QueryRow(
 		`INSERT INTO users(name, phone_number, password)
 		 VALUES($1, $2, $3)

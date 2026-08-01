@@ -7,20 +7,23 @@ import (
 	"github.com/younesbeheshti/gocast_game/config"
 	"github.com/younesbeheshti/gocast_game/service/authservice"
 	"github.com/younesbeheshti/gocast_game/service/userservice"
+	"github.com/younesbeheshti/gocast_game/validator/uservalidator"
 	"log/slog"
 )
 
 type Server struct {
-	config  config.Config
-	authSvc authservice.Service
-	userSvc userservice.Service
+	config        config.Config
+	authSvc       authservice.Service
+	userSvc       userservice.Service
+	userValidator uservalidator.Validator
 }
 
-func New(config config.Config, authSvc authservice.Service, userSvc userservice.Service) *Server {
+func New(config config.Config, authSvc authservice.Service, userSvc userservice.Service, validator uservalidator.Validator) *Server {
 	return &Server{
-		config:  config,
-		authSvc: authSvc,
-		userSvc: userSvc,
+		config:        config,
+		authSvc:       authSvc,
+		userSvc:       userSvc,
+		userValidator: validator,
 	}
 }
 
