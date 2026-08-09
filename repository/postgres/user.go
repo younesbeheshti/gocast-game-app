@@ -24,21 +24,22 @@ func (d PostgresDB) GetUserByID(userID uint) (*entity.User, error) {
 	return user, nil
 }
 
-func (d PostgresDB) GetUserByPhoneNumber(phoneNumber string) (*entity.User, bool, error) {
+func (d PostgresDB) GetUserByPhoneNumber(phoneNumber string) (*entity.User, error) {
 	const op = "psql.GetUserByPhoneNumber"
 	row := d.db.QueryRow(`select * from users where phone_number=$1`, phoneNumber)
 	user, err := scanUser(row)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, false, nil
+			return nil, richerror.New(op).WithErr(err).WithMessage("record not found").WithKind(richerror.KindNotFound)
 		}
-		//fmt.Errorf("cant scan query result: %w", err)
-		return nil, false, richerror.New(op).WithErr(err).WithMessage("can't scan the query result").WithKind(richerror.KindUnexpected)
+
+		// TODO: log unexpected error for better observability
+		return nil, richerror.New(op).WithErr(err).WithMessage("can't scan the query result").WithKind(richerror.KindUnexpected)
 
 	}
 
-	return user, true, nil
+	return user, nil
 }
 
 func (d PostgresDB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
