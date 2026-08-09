@@ -5,7 +5,6 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/younesbeheshti/gocast_game/dto"
 	"github.com/younesbeheshti/gocast_game/pkg/httpmsg"
-	"github.com/younesbeheshti/gocast_game/service/userservice"
 	"net/http"
 )
 
@@ -33,7 +32,7 @@ func (s Server) userRegisterHandler(c *echo.Context) error {
 }
 
 func (s Server) userLoginHandler(c *echo.Context) error {
-	var req userservice.LoginRequest
+	var req dto.LoginRequest
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -56,7 +55,7 @@ func (s Server) userProfileHandler(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
 
-	resp, err := s.userSvc.GetProfile(userservice.ProfileRequest{UserID: claims.UserID})
+	resp, err := s.userSvc.GetProfile(dto.ProfileRequest{UserID: claims.UserID})
 	if err != nil {
 		msg, code := httpmsg.Error(err)
 		return echo.NewHTTPError(code, msg)

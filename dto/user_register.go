@@ -9,9 +9,3 @@ type RegisterRequest struct {
 type RegisterResponse struct {
 	User UserInfo `json:"user"`
 }
-
-type UserInfo struct {
-	ID          uint   `json:"id"`
-	PhoneNumber string `json:"phone_number"`
-	Name        string `json:"name"`
-}
