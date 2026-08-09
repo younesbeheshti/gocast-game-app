@@ -2,11 +2,11 @@ package userservice
 
 import (
 	"fmt"
-	"github.com/younesbeheshti/gocast_game/dto"
+	"github.com/younesbeheshti/gocast_game/param"
 	"github.com/younesbeheshti/gocast_game/pkg/richerror"
 )
 
-func (s *Service) Login(req dto.LoginRequest) (*dto.LoginResponse, error) {
+func (s *Service) Login(req param.LoginRequest) (*param.LoginResponse, error) {
 	const op = "userservic.Login"
 	// TODO - it would be better for user to have two separate methods for existence and getUserBYPhoneNumber
 
@@ -33,11 +33,11 @@ func (s *Service) Login(req dto.LoginRequest) (*dto.LoginResponse, error) {
 		return nil, fmt.Errorf("unexpected error %w", err)
 	}
 
-	return &dto.LoginResponse{User: dto.UserInfo{ID: user.ID,
+	return &param.LoginResponse{User: param.UserInfo{ID: user.ID,
 		PhoneNumber: user.PhoneNumber,
 		Name:        user.Name,
 	},
-		Tokens: dto.Tokens{AccessToken: accessToken,
+		Tokens: param.Tokens{AccessToken: accessToken,
 			RefreshToken: refreshToken},
 	}, nil
 }

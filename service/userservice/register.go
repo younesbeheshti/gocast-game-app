@@ -2,11 +2,11 @@ package userservice
 
 import (
 	"fmt"
-	"github.com/younesbeheshti/gocast_game/dto"
 	"github.com/younesbeheshti/gocast_game/entity"
+	"github.com/younesbeheshti/gocast_game/param"
 )
 
-func (s *Service) Register(req dto.RegisterRequest) (*dto.RegisterResponse, error) {
+func (s *Service) Register(req param.RegisterRequest) (*param.RegisterResponse, error) {
 
 	//TODO: verifying phone number with verification code
 
@@ -24,8 +24,8 @@ func (s *Service) Register(req dto.RegisterRequest) (*dto.RegisterResponse, erro
 	}
 
 	//return created user
-	return &dto.RegisterResponse{
-		User: dto.UserInfo{
+	return &param.RegisterResponse{
+		User: param.UserInfo{
 			ID:          createdUser.ID,
 			PhoneNumber: createdUser.PhoneNumber,
 			Name:        createdUser.Name,

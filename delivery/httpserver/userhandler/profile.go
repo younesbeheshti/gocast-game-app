@@ -2,7 +2,7 @@ package userhandler
 
 import (
 	"github.com/labstack/echo/v5"
-	"github.com/younesbeheshti/gocast_game/dto"
+	"github.com/younesbeheshti/gocast_game/param"
 	"github.com/younesbeheshti/gocast_game/pkg/httpmsg"
 	"net/http"
 )
@@ -15,7 +15,7 @@ func (h Handler) userProfileHandler(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
 
-	resp, err := h.userSvc.GetProfile(dto.ProfileRequest{UserID: claims.UserID})
+	resp, err := h.userSvc.GetProfile(param.ProfileRequest{UserID: claims.UserID})
 	if err != nil {
 		msg, code := httpmsg.Error(err)
 		return echo.NewHTTPError(code, msg)
