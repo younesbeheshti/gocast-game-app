@@ -20,6 +20,9 @@ const (
 
 func main() {
 
+	//TODO: read cofig path from command line
+	config.Load("config.yml")
+
 	cfg := config.Config{
 		HttpServer: config.HttpServer{Port: 8080},
 		Auth: authservice.Config{
@@ -34,7 +37,7 @@ func main() {
 			Port:     5432,
 			Username: "postgres",
 			Password: "postgres",
-			Database: "postgres",
+			DBName:   "postgres",
 			Sslmode:  "disable",
 		}}
 

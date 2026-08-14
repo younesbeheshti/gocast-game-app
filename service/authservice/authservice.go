@@ -8,11 +8,11 @@ import (
 )
 
 type Config struct {
-	SignKey            string
-	AccessDurationTime time.Duration
-	RefreshDuration    time.Duration
-	AccessSubject      string
-	RefreshSubject     string
+	SignKey            string        `koanf:"sign_key"`
+	AccessDurationTime time.Duration `koanf:"access_duration_time"`
+	RefreshDuration    time.Duration `koanf:"refresh_duration"`
+	AccessSubject      string        `koanf:"access_subject"`
+	RefreshSubject     string        `koanf:"refresh_subject"`
 }
 
 type Service struct {

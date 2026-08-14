@@ -6,11 +6,11 @@ import (
 )
 
 type Config struct {
-	HttpServer HttpServer
-	Auth       authservice.Config
-	Psql       postgres.Config
+	HttpServer HttpServer         `koanf:"http_server""`
+	Auth       authservice.Config `koanf:"auth"`
+	Psql       postgres.Config    `koanf:"postgres"`
 }
 
 type HttpServer struct {
-	Port int
+	Port int `koanf:"port"`
 }

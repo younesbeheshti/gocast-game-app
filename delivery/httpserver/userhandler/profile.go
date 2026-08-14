@@ -2,6 +2,7 @@ package userhandler
 
 import (
 	"github.com/labstack/echo/v5"
+	"github.com/younesbeheshti/gocast_game/config"
 	"github.com/younesbeheshti/gocast_game/param"
 	"github.com/younesbeheshti/gocast_game/pkg/httpmsg"
 	"github.com/younesbeheshti/gocast_game/service/authservice"
@@ -9,7 +10,7 @@ import (
 )
 
 func getClaims(c *echo.Context) *authservice.Claims {
-	return c.Get("claims").(*authservice.Claims)
+	return c.Get(config.AuthMiddlewareContextKey).(*authservice.Claims)
 }
 
 func (h Handler) userProfileHandler(c *echo.Context) error {
