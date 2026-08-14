@@ -4,17 +4,17 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/younesbeheshti/gocast_game/param"
 	"github.com/younesbeheshti/gocast_game/pkg/httpmsg"
+	"github.com/younesbeheshti/gocast_game/service/authservice"
 	"net/http"
 )
 
+func getClaims(c *echo.Context) *authservice.Claims {
+	return c.Get("claims").(*authservice.Claims)
+}
+
 func (h Handler) userProfileHandler(c *echo.Context) error {
 
-	authToken := c.Request().Header.Get("Authorization")
-	claims, err := h.authSvc.ParseToken(authToken)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
-	}
-
+	claims := getClaims(c)
 	resp, err := h.userSvc.GetProfile(param.ProfileRequest{UserID: claims.UserID})
 	if err != nil {
 		msg, code := httpmsg.Error(err)
