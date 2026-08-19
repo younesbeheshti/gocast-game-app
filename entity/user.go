@@ -5,4 +5,5 @@ type User struct {
 	PhoneNumber    string
 	Name           string
 	HashedPassword string
+	Role           Role
 }

@@ -26,7 +26,7 @@ func New(dbCfg postgres.Config) Migrator {
 }
 
 func (m Migrator) Up() {
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", m.dbConfig.Username, m.dbConfig.Password, m.dbConfig.Host, m.dbConfig.Port, m.dbConfig.Database, m.dbConfig.Sslmode)
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", m.dbConfig.Username, m.dbConfig.Password, m.dbConfig.Host, m.dbConfig.Port, m.dbConfig.DBName, m.dbConfig.Sslmode)
 
 	db, err := sql.Open(m.dialect, dsn)
 	if err != nil {
@@ -41,7 +41,7 @@ func (m Migrator) Up() {
 	fmt.Printf("migrated %d migrations\n", n)
 }
 func (m Migrator) Down() {
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", m.dbConfig.Username, m.dbConfig.Password, m.dbConfig.Host, m.dbConfig.Port, m.dbConfig.Database, m.dbConfig.Sslmode)
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", m.dbConfig.Username, m.dbConfig.Password, m.dbConfig.Host, m.dbConfig.Port, m.dbConfig.DBName, m.dbConfig.Sslmode)
 
 	db, err := sql.Open(m.dialect, dsn)
 	if err != nil {

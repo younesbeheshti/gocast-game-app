@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/younesbeheshti/gocast_game/config"
 	"github.com/younesbeheshti/gocast_game/delivery/httpserver"
+	"github.com/younesbeheshti/gocast_game/repository/migrator"
 	"github.com/younesbeheshti/gocast_game/repository/postgres"
 	"github.com/younesbeheshti/gocast_game/service/authservice"
 	"github.com/younesbeheshti/gocast_game/service/userservice"
@@ -42,8 +43,8 @@ func main() {
 		}}
 
 	// TODO - add command for apply
-	//mgr := migrator.New(cfg.Psql)
-	//mgr.Up()
+	mgr := migrator.New(cfg.Psql)
+	mgr.Up()
 
 	userSvc, authSvc, userValidator := setupServices(cfg)
 
