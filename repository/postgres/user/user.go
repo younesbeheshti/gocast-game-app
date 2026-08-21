@@ -1,16 +1,17 @@
-package postgres
+package psqluser
 
 import (
 	"database/sql"
 	"fmt"
 	"github.com/younesbeheshti/gocast_game/entity"
 	"github.com/younesbeheshti/gocast_game/pkg/richerror"
+	"github.com/younesbeheshti/gocast_game/repository/postgres"
 	"time"
 )
 
-func (d PostgresDB) GetUserByID(userID uint) (*entity.User, error) {
+func (d *DB) GetUserByID(userID uint) (*entity.User, error) {
 	const op = "psql.GetUserByID"
-	row := d.db.QueryRow(`select * from users where id=$1`, userID)
+	row := d.conn.Conn().QueryRow(`select * from users where id=$1`, userID)
 	user, err := scanUser(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -24,9 +25,9 @@ func (d PostgresDB) GetUserByID(userID uint) (*entity.User, error) {
 	return user, nil
 }
 
-func (d PostgresDB) GetUserByPhoneNumber(phoneNumber string) (*entity.User, error) {
+func (d *DB) GetUserByPhoneNumber(phoneNumber string) (*entity.User, error) {
 	const op = "psql.GetUserByPhoneNumber"
-	row := d.db.QueryRow(`select * from users where phone_number=$1`, phoneNumber)
+	row := d.conn.Conn().QueryRow(`select * from users where phone_number=$1`, phoneNumber)
 	user, err := scanUser(row)
 
 	if err != nil {
@@ -42,11 +43,11 @@ func (d PostgresDB) GetUserByPhoneNumber(phoneNumber string) (*entity.User, erro
 	return user, nil
 }
 
-func (d PostgresDB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
+func (d *DB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
 
 	const op = "psql.IsPhoneNumberUnique"
 
-	row := d.db.QueryRow(`select * from users where phone_number=$1`, phoneNumber)
+	row := d.conn.Conn().QueryRow(`select * from users where phone_number=$1`, phoneNumber)
 	_, err := scanUser(row)
 
 	if err != nil {
@@ -59,16 +60,17 @@ func (d PostgresDB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
 	}
 	return false, nil
 }
-func (d PostgresDB) Register(u entity.User) (*entity.User, error) {
+func (d *DB) Register(u entity.User) (*entity.User, error) {
 	const op = "psql.Register"
 
-	err := d.db.QueryRow(
-		`INSERT INTO users(name, phone_number, password)
-		 VALUES($1, $2, $3)
+	err := d.conn.Conn().QueryRow(
+		`INSERT INTO users(name, phone_number, password, role)
+		 VALUES($1, $2, $3, $4)
 		 RETURNING id`,
 		u.Name,
 		u.PhoneNumber,
 		u.HashedPassword,
+		u.Role.String(),
 	).Scan(&u.ID)
 
 	if err != nil {
@@ -77,9 +79,15 @@ func (d PostgresDB) Register(u entity.User) (*entity.User, error) {
 
 	return &u, nil
 }
-func scanUser(rows *sql.Row) (*entity.User, error) {
+func scanUser(scanner postgres.Scanner) (*entity.User, error) {
 	var user entity.User
 	var createdAt time.Time
-	err := rows.Scan(&user.ID, &user.Name, &user.PhoneNumber, &createdAt, &user.HashedPassword)
+
+	var roleStr string
+
+	err := scanner.Scan(&user.ID, &user.Name, &user.PhoneNumber, &createdAt, &user.HashedPassword, &roleStr)
+
+	user.Role = entity.MapToRoleEntity(roleStr)
+
 	return &user, err
 }

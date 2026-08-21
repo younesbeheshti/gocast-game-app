@@ -7,12 +7,29 @@ const (
 	AdminRole
 )
 
+const (
+	UserRoleStr  = "user"
+	AdminRoleStr = "admin"
+)
+
 func (r Role) String() string {
 	switch r {
 	case UserRole:
-		return "User"
+		return UserRoleStr
 	case AdminRole:
-		return "Admin"
+		return AdminRoleStr
 	}
 	return ""
+}
+
+func MapToRoleEntity(str string) Role {
+	switch str {
+	case UserRoleStr:
+		return UserRole
+	case AdminRoleStr:
+		return AdminRole
+
+	}
+
+	return UserRole
 }

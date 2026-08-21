@@ -22,6 +22,10 @@ type PostgresDB struct {
 	db     *sql.DB
 }
 
+func (p *PostgresDB) Conn() *sql.DB {
+	return p.db
+}
+
 func New(config Config) PostgresDB {
 	//dsn := "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable"
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", config.Username, config.Password, config.Host, config.Port, config.DBName, config.Sslmode)

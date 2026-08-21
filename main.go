@@ -5,7 +5,11 @@ import (
 	"github.com/younesbeheshti/gocast_game/delivery/httpserver"
 	"github.com/younesbeheshti/gocast_game/repository/migrator"
 	"github.com/younesbeheshti/gocast_game/repository/postgres"
+	psqlaccesscontrol "github.com/younesbeheshti/gocast_game/repository/postgres/accesscontrol"
+	"github.com/younesbeheshti/gocast_game/repository/postgres/user"
+	"github.com/younesbeheshti/gocast_game/service/authorizationservice"
 	"github.com/younesbeheshti/gocast_game/service/authservice"
+	"github.com/younesbeheshti/gocast_game/service/backofficeuserservice"
 	"github.com/younesbeheshti/gocast_game/service/userservice"
 	"github.com/younesbeheshti/gocast_game/validator/uservalidator"
 	"time"
@@ -46,20 +50,28 @@ func main() {
 	mgr := migrator.New(cfg.Psql)
 	mgr.Up()
 
-	userSvc, authSvc, userValidator := setupServices(cfg)
+	userSvc, authSvc, userValidator, backofficeUserSvc, authorizationSvc := setupServices(cfg)
 
-	server := httpserver.New(cfg, authSvc, userSvc, userValidator)
+	server := httpserver.New(cfg, authSvc, userSvc, userValidator, backofficeUserSvc, authorizationSvc)
 
 	server.Serve()
 
 }
 
-func setupServices(cfg config.Config) (userservice.Service, authservice.Service, uservalidator.Validator) {
+func setupServices(cfg config.Config) (userservice.Service, authservice.Service, uservalidator.Validator, backofficeuserservice.Service, authorizationservice.Service) {
 	authSvc := authservice.New(cfg.Auth)
 	psqlRepo := postgres.New(cfg.Psql)
-	userSvc := userservice.New(psqlRepo, authSvc)
-	uV := uservalidator.New(psqlRepo)
-	return userSvc, authSvc, uV
+
+	userPsql := psqluser.New(&psqlRepo)
+
+	userSvc := userservice.New(userPsql, authSvc)
+
+	uV := uservalidator.New(userPsql)
+	backofficeUserSvc := backofficeuserservice.New()
+
+	aclPsql := psqlaccesscontrol.New(&psqlRepo)
+	authorizationSvc := authorizationservice.New(aclPsql)
+	return userSvc, authSvc, uV, backofficeUserSvc, authorizationSvc
 }
 
 //func testDatabase() {
