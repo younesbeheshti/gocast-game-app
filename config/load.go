@@ -11,7 +11,7 @@ import (
 	"github.com/knadh/koanf/v2"
 )
 
-func Load(configPath string) (*Config, error) {
+func Load(configPath string) (Config, error) {
 	var k = koanf.New(".")
 
 	k.Load(confmap.Provider(defaultConfig, "."), nil)
@@ -50,5 +50,5 @@ func Load(configPath string) (*Config, error) {
 
 	fmt.Println(cfg)
 
-	return nil, nil
+	return cfg, nil
 }

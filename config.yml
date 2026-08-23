@@ -1,9 +1,24 @@
 ---
 type: yml
 auth:
-  sign_key: hello
+  sign_key: secret
+
+http_server:
+  port: 8080
 
 postgres:
   port: 5432
   host: localhost
   db_name: postgres
+  username: postgres
+  password: postgres
+  sslmode: disable
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  db: 0
+
+matching_service:
+  waiting_timeout: "2m"

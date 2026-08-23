@@ -1,64 +1,49 @@
 package main
 
 import (
+	"fmt"
+	"github.com/younesbeheshti/gocast_game/adapter/redis"
 	"github.com/younesbeheshti/gocast_game/config"
 	"github.com/younesbeheshti/gocast_game/delivery/httpserver"
 	"github.com/younesbeheshti/gocast_game/repository/migrator"
 	"github.com/younesbeheshti/gocast_game/repository/postgres"
 	psqlaccesscontrol "github.com/younesbeheshti/gocast_game/repository/postgres/accesscontrol"
 	"github.com/younesbeheshti/gocast_game/repository/postgres/user"
+	"github.com/younesbeheshti/gocast_game/repository/redis/redismatching"
 	"github.com/younesbeheshti/gocast_game/service/authorizationservice"
 	"github.com/younesbeheshti/gocast_game/service/authservice"
 	"github.com/younesbeheshti/gocast_game/service/backofficeuserservice"
+	"github.com/younesbeheshti/gocast_game/service/matchingservice"
 	"github.com/younesbeheshti/gocast_game/service/userservice"
+	"github.com/younesbeheshti/gocast_game/validator/matchingvalidator"
 	"github.com/younesbeheshti/gocast_game/validator/uservalidator"
-	"time"
-)
-
-const (
-	JwtSecret                  = "secret"
-	AccessToken                = "access_token"
-	RefreshToken               = "refresh_token"
-	AccessTokenExpireDuration  = time.Hour * 24
-	RefreshTokenExpireDuration = time.Hour * 24 * 7
+	"log"
 )
 
 func main() {
 
 	//TODO: read cofig path from command line
-	config.Load("config.yml")
 
-	cfg := config.Config{
-		HttpServer: config.HttpServer{Port: 8080},
-		Auth: authservice.Config{
-			SignKey:            JwtSecret,
-			AccessSubject:      AccessToken,
-			RefreshSubject:     RefreshToken,
-			AccessDurationTime: AccessTokenExpireDuration,
-			RefreshDuration:    RefreshTokenExpireDuration,
-		},
-		Psql: postgres.Config{
-			Host:     "localhost",
-			Port:     5432,
-			Username: "postgres",
-			Password: "postgres",
-			DBName:   "postgres",
-			Sslmode:  "disable",
-		}}
+	cfg, err := config.Load("config.yml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(cfg)
 
 	// TODO - add command for apply
 	mgr := migrator.New(cfg.Psql)
 	mgr.Up()
 
-	userSvc, authSvc, userValidator, backofficeUserSvc, authorizationSvc := setupServices(cfg)
+	// TODO - create struct and add these returned items as struct field
+	userSvc, authSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV := setupServices(cfg)
 
-	server := httpserver.New(cfg, authSvc, userSvc, userValidator, backofficeUserSvc, authorizationSvc)
+	server := httpserver.New(cfg, authSvc, userSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV)
 
 	server.Serve()
 
 }
 
-func setupServices(cfg config.Config) (userservice.Service, authservice.Service, uservalidator.Validator, backofficeuserservice.Service, authorizationservice.Service) {
+func setupServices(cfg config.Config) (userservice.Service, authservice.Service, uservalidator.Validator, backofficeuserservice.Service, authorizationservice.Service, matchingservice.Service, matchingvalidator.Validator) {
 	authSvc := authservice.New(cfg.Auth)
 	psqlRepo := postgres.New(cfg.Psql)
 
@@ -71,7 +56,13 @@ func setupServices(cfg config.Config) (userservice.Service, authservice.Service,
 
 	aclPsql := psqlaccesscontrol.New(&psqlRepo)
 	authorizationSvc := authorizationservice.New(aclPsql)
-	return userSvc, authSvc, uV, backofficeUserSvc, authorizationSvc
+
+	matchingV := matchingvalidator.New()
+
+	redisAdapter := redis.New(cfg.Redis)
+	matchingRepo := redismatching.New(redisAdapter)
+	matchingSvc := matchingservice.New(cfg.MatchingService, matchingRepo)
+	return userSvc, authSvc, uV, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV
 }
 
 //func testDatabase() {

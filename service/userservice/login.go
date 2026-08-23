@@ -28,7 +28,7 @@ func (s *Service) Login(req param.LoginRequest) (*param.LoginResponse, error) {
 		return nil, fmt.Errorf("unexpected error %w", err)
 	}
 
-	refreshToken, err := s.auth.CreateAccessToken(*user)
+	refreshToken, err := s.auth.CreateRefreshToken(*user)
 	if err != nil {
 		return nil, fmt.Errorf("unexpected error %w", err)
 	}

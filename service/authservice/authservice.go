@@ -8,11 +8,11 @@ import (
 )
 
 type Config struct {
-	SignKey            string        `koanf:"sign_key"`
-	AccessDurationTime time.Duration `koanf:"access_duration_time"`
-	RefreshDuration    time.Duration `koanf:"refresh_duration"`
-	AccessSubject      string        `koanf:"access_subject"`
-	RefreshSubject     string        `koanf:"refresh_subject"`
+	SignKey             string        `koanf:"sign_key"`
+	AccessDurationTime  time.Duration `koanf:"access_duration_time"`
+	RefreshDurationTime time.Duration `koanf:"refresh_duration_time"`
+	AccessSubject       string        `koanf:"access_subject"`
+	RefreshSubject      string        `koanf:"refresh_subject"`
 }
 
 type Service struct {
@@ -29,7 +29,7 @@ func (s Service) CreateAccessToken(user entity.User) (string, error) {
 	return s.createToken(user.ID, user.Role, s.config.AccessSubject, s.config.AccessDurationTime)
 }
 func (s Service) CreateRefreshToken(user entity.User) (string, error) {
-	return s.createToken(user.ID, user.Role, s.config.RefreshSubject, s.config.RefreshDuration)
+	return s.createToken(user.ID, user.Role, s.config.RefreshSubject, s.config.RefreshDurationTime)
 }
 func (s Service) ParseToken(tokenString string) (*Claims, error) {
 
