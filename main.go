@@ -10,6 +10,7 @@ import (
 	psqlaccesscontrol "github.com/younesbeheshti/gocast_game/repository/postgres/accesscontrol"
 	"github.com/younesbeheshti/gocast_game/repository/postgres/user"
 	"github.com/younesbeheshti/gocast_game/repository/redis/redismatching"
+	"github.com/younesbeheshti/gocast_game/scheduler"
 	"github.com/younesbeheshti/gocast_game/service/authorizationservice"
 	"github.com/younesbeheshti/gocast_game/service/authservice"
 	"github.com/younesbeheshti/gocast_game/service/backofficeuserservice"
@@ -18,6 +19,10 @@ import (
 	"github.com/younesbeheshti/gocast_game/validator/matchingvalidator"
 	"github.com/younesbeheshti/gocast_game/validator/uservalidator"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
@@ -37,10 +42,24 @@ func main() {
 	// TODO - create struct and add these returned items as struct field
 	userSvc, authSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV := setupServices(cfg)
 
+	done := make(chan bool, 1)
+
+	go func() {
+		sch := scheduler.New()
+		sch.Start(done)
+	}()
+
 	server := httpserver.New(cfg, authSvc, userSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV)
 
 	server.Serve()
 
+	sigchnl := make(chan os.Signal, 1)
+	signal.Notify(sigchnl, syscall.SIGINT)
+	<-sigchnl
+	done <- true
+
+	fmt.Println("Shutting down...")
+	time.Sleep(5 * time.Second)
 }
 
 func setupServices(cfg config.Config) (userservice.Service, authservice.Service, uservalidator.Validator, backofficeuserservice.Service, authorizationservice.Service, matchingservice.Service, matchingvalidator.Validator) {
