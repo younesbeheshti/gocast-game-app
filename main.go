@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/younesbeheshti/gocast_game/adapter/redis"
 	"github.com/younesbeheshti/gocast_game/config"
@@ -22,7 +23,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 func main() {
@@ -45,21 +45,34 @@ func main() {
 	done := make(chan bool, 1)
 
 	go func() {
-		sch := scheduler.New()
+		sch := scheduler.New(matchingSvc)
 		sch.Start(done)
 	}()
 
 	server := httpserver.New(cfg, authSvc, userSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV)
 
-	server.Serve()
+	ctx, stop := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	defer stop()
+	go func() {
+		if err := server.Serve(ctx); err != nil {
+			log.Printf("HTTP server stopped: %v", err)
+		}
 
-	sigchnl := make(chan os.Signal, 1)
-	signal.Notify(sigchnl, syscall.SIGINT)
-	<-sigchnl
-	done <- true
+	}()
 
+	<-ctx.Done()
+
+	//sigchnl := make(chan os.Signal, 1)
+	//signal.Notify(sigchnl, syscall.SIGINT)
+	//<-sigchnl
 	fmt.Println("Shutting down...")
-	time.Sleep(5 * time.Second)
+
+	done <- true
+	
 }
 
 func setupServices(cfg config.Config) (userservice.Service, authservice.Service, uservalidator.Validator, backofficeuserservice.Service, authorizationservice.Service, matchingservice.Service, matchingvalidator.Validator) {

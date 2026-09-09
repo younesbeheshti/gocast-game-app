@@ -5,9 +5,15 @@ import (
 	"github.com/younesbeheshti/gocast_game/repository/postgres"
 	"github.com/younesbeheshti/gocast_game/service/authservice"
 	"github.com/younesbeheshti/gocast_game/service/matchingservice"
+	"time"
 )
 
+type Application struct {
+	GracefulShutdownTimeout time.Duration `koanf:"graceful_shutdown_timeout"`
+}
+
 type Config struct {
+	Application     Application            `koanf:"application"`
 	HttpServer      HttpServer             `koanf:"http_server"`
 	Auth            authservice.Config     `koanf:"auth"`
 	Psql            postgres.Config        `koanf:"postgres"`

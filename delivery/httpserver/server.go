@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"context"
 	"fmt"
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
@@ -15,7 +16,6 @@ import (
 	"github.com/younesbeheshti/gocast_game/service/userservice"
 	"github.com/younesbeheshti/gocast_game/validator/matchingvalidator"
 	"github.com/younesbeheshti/gocast_game/validator/uservalidator"
-	"log/slog"
 )
 
 type Server struct {
@@ -34,8 +34,16 @@ func New(config config.Config, authSvc authservice.Service, userSvc userservice.
 	}
 }
 
-func (s Server) Serve() {
+func (s Server) Serve(ctx context.Context) error {
 	e := echo.New()
+
+	sc := echo.StartConfig{
+		Address:         fmt.Sprintf(":%d", s.config.HttpServer.Port),
+		GracefulTimeout: s.config.Application.GracefulShutdownTimeout,
+		OnShutdownError: func(err error) {
+			e.Logger.Error("graceful shutdown failed", "error", err)
+		},
+	}
 
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
@@ -46,7 +54,5 @@ func (s Server) Serve() {
 	s.backofficeUserHandler.SetUserRoutes(e)
 	s.matchingHandler.SetUserRoutes(e)
 
-	if err := e.Start(fmt.Sprintf(":%d", s.config.HttpServer.Port)); err != nil {
-		slog.Error("failed to start server", "error", err)
-	}
+	return sc.Start(ctx, e)
 }

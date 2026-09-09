@@ -1,6 +1,7 @@
 package matchingservice
 
 import (
+	"fmt"
 	"github.com/younesbeheshti/gocast_game/entity"
 	"github.com/younesbeheshti/gocast_game/param"
 	"github.com/younesbeheshti/gocast_game/pkg/richerror"
@@ -34,4 +35,9 @@ func (s Service) AddToWaitingList(req *param.AddToWaitingListRequest) (*param.Ad
 
 	return &param.AddToWaitingListResponse{s.config.WaitingTimeout}, nil
 
+}
+
+func (s Service) MatchWaitedUsers(req *param.MatchWaitedUsersRequest) (*param.MatchWaitedUsersResponse, error) {
+	fmt.Println("Match Waited Users")
+	return nil, nil
 }
