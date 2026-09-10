@@ -6,7 +6,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/younesbeheshti/gocast_game/entity"
 	"github.com/younesbeheshti/gocast_game/pkg/richerror"
-	"time"
+	"github.com/younesbeheshti/gocast_game/pkg/timestamp"
 )
 
 // TODO - add to config in usecase layer ...
@@ -16,7 +16,7 @@ func (d *DB) AddToWaitingList(userID uint, category entity.Category) error {
 	const op = "redis.matching.AddToWaitingList"
 
 	_, err := d.adapter.Client().ZAdd(context.Background(), fmt.Sprintf("%s:%s", WaitingListPrefix, category), redis.Z{
-		Score:  float64(time.Now().Unix()),
+		Score:  float64(timestamp.Now()),
 		Member: fmt.Sprintf("%d", userID),
 	}).Result()
 

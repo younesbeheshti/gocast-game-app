@@ -13,6 +13,7 @@ import (
 	"github.com/younesbeheshti/gocast_game/service/authservice"
 	"github.com/younesbeheshti/gocast_game/service/backofficeuserservice"
 	"github.com/younesbeheshti/gocast_game/service/matchingservice"
+	"github.com/younesbeheshti/gocast_game/service/presenceservice"
 	"github.com/younesbeheshti/gocast_game/service/userservice"
 	"github.com/younesbeheshti/gocast_game/validator/matchingvalidator"
 	"github.com/younesbeheshti/gocast_game/validator/uservalidator"
@@ -25,12 +26,12 @@ type Server struct {
 	matchingHandler       matchinghandler.Handler
 }
 
-func New(config config.Config, authSvc authservice.Service, userSvc userservice.Service, validator uservalidator.Validator, backofficeUserSvc backofficeuserservice.Service, authorizationSvc authorizationservice.Service, matchingSvc matchingservice.Service, matchingValidator matchingvalidator.Validator) *Server {
+func New(config config.Config, authSvc authservice.Service, userSvc userservice.Service, validator uservalidator.Validator, backofficeUserSvc backofficeuserservice.Service, authorizationSvc authorizationservice.Service, matchingSvc matchingservice.Service, matchingValidator matchingvalidator.Validator, presenceSvc presenceservice.Service) *Server {
 	return &Server{
 		config:                config,
-		userHandler:           userhandler.New(authSvc, userSvc, validator, config.Auth),
+		userHandler:           userhandler.New(authSvc, userSvc, validator, config.Auth, presenceSvc),
 		backofficeUserHandler: backofficeuserhandler.New(authSvc, config.Auth, backofficeUserSvc, authorizationSvc),
-		matchingHandler:       matchinghandler.New(authSvc, config.Auth, matchingSvc, matchingValidator),
+		matchingHandler:       matchinghandler.New(authSvc, config.Auth, matchingSvc, matchingValidator, presenceSvc),
 	}
 }
 

@@ -11,11 +11,13 @@ import (
 	psqlaccesscontrol "github.com/younesbeheshti/gocast_game/repository/postgres/accesscontrol"
 	"github.com/younesbeheshti/gocast_game/repository/postgres/user"
 	"github.com/younesbeheshti/gocast_game/repository/redis/redismatching"
+	"github.com/younesbeheshti/gocast_game/repository/redis/redispresence"
 	"github.com/younesbeheshti/gocast_game/scheduler"
 	"github.com/younesbeheshti/gocast_game/service/authorizationservice"
 	"github.com/younesbeheshti/gocast_game/service/authservice"
 	"github.com/younesbeheshti/gocast_game/service/backofficeuserservice"
 	"github.com/younesbeheshti/gocast_game/service/matchingservice"
+	"github.com/younesbeheshti/gocast_game/service/presenceservice"
 	"github.com/younesbeheshti/gocast_game/service/userservice"
 	"github.com/younesbeheshti/gocast_game/validator/matchingvalidator"
 	"github.com/younesbeheshti/gocast_game/validator/uservalidator"
@@ -40,16 +42,7 @@ func main() {
 	mgr.Up()
 
 	// TODO - create struct and add these returned items as struct field
-	userSvc, authSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV := setupServices(cfg)
-
-	done := make(chan bool, 1)
-
-	go func() {
-		sch := scheduler.New(matchingSvc)
-		sch.Start(done)
-	}()
-
-	server := httpserver.New(cfg, authSvc, userSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV)
+	userSvc, authSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV, presenceSvc := setupServices(cfg)
 
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
@@ -57,25 +50,31 @@ func main() {
 		syscall.SIGTERM,
 	)
 	defer stop()
-	go func() {
-		if err := server.Serve(ctx); err != nil {
-			log.Printf("HTTP server stopped: %v", err)
-		}
 
+	go func() {
+		sch := scheduler.New(matchingSvc, cfg.Scheduler)
+		sch.Start(ctx)
 	}()
 
-	<-ctx.Done()
+	server := httpserver.
+		New(cfg, authSvc, userSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV, presenceSvc)
+
+	if err := server.Serve(ctx); err != nil {
+		log.Printf("HTTP server stopped: %v", err)
+	}
 
 	//sigchnl := make(chan os.Signal, 1)
 	//signal.Notify(sigchnl, syscall.SIGINT)
 	//<-sigchnl
 	fmt.Println("Shutting down...")
 
-	done <- true
-	
 }
 
-func setupServices(cfg config.Config) (userservice.Service, authservice.Service, uservalidator.Validator, backofficeuserservice.Service, authorizationservice.Service, matchingservice.Service, matchingvalidator.Validator) {
+func setupServices(cfg config.Config) (
+	userservice.Service, authservice.Service, uservalidator.Validator,
+	backofficeuserservice.Service, authorizationservice.Service,
+	matchingservice.Service, matchingvalidator.Validator, presenceservice.Service) {
+
 	authSvc := authservice.New(cfg.Auth)
 	psqlRepo := postgres.New(cfg.Psql)
 
@@ -94,7 +93,10 @@ func setupServices(cfg config.Config) (userservice.Service, authservice.Service,
 	redisAdapter := redis.New(cfg.Redis)
 	matchingRepo := redismatching.New(redisAdapter)
 	matchingSvc := matchingservice.New(cfg.MatchingService, matchingRepo)
-	return userSvc, authSvc, uV, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV
+	presenceRepo := redispresence.New(redisAdapter)
+	presenceSvc := presenceservice.New(cfg.PresenceService, presenceRepo)
+
+	return userSvc, authSvc, uV, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV, presenceSvc
 }
 
 //func testDatabase() {
