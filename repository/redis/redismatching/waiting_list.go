@@ -7,6 +7,8 @@ import (
 	"github.com/younesbeheshti/gocast_game/entity"
 	"github.com/younesbeheshti/gocast_game/pkg/richerror"
 	"github.com/younesbeheshti/gocast_game/pkg/timestamp"
+	"strconv"
+	"time"
 )
 
 // TODO - add to config in usecase layer ...
@@ -25,4 +27,39 @@ func (d *DB) AddToWaitingList(userID uint, category entity.Category) error {
 	}
 
 	return nil
+}
+
+func (d *DB) GetWaitingListByCategory(ctx context.Context, category entity.Category) ([]entity.WaitingMember, error) {
+	const op = "redis.matching.GetWaitingListByCategory"
+
+	min := fmt.Sprintf("%d", timestamp.Add(-2*time.Hour))
+	max := fmt.Sprintf("%d", timestamp.Now())
+
+	list, err := d.adapter.Client().ZRangeByScoreWithScores(ctx, getCategory(category), &redis.ZRangeBy{
+		Min:    min,
+		Max:    max,
+		Offset: 0,
+		Count:  0,
+	}).Result()
+
+	if err != nil {
+		return nil, richerror.New(op).WithErr(err).WithKind(richerror.KindUnexpected)
+	}
+
+	result := make([]entity.WaitingMember, 0)
+	for _, item := range list {
+		userID, _ := strconv.Atoi(item.Member.(string))
+
+		result = append(result, entity.WaitingMember{
+			UserID:    uint(userID),
+			Timestamp: int64(item.Score),
+			Category:  category,
+		})
+	}
+
+	return result, nil
+}
+
+func getCategory(category entity.Category) string {
+	return fmt.Sprintf("%s:%s", WaitingListPrefix, category)
 }

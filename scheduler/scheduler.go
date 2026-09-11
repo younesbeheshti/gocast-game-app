@@ -60,5 +60,12 @@ func (s Scheduler) Start(ctx context.Context) {
 }
 
 func (s Scheduler) MatchWaitedUsers() {
-	s.matchSvc.MatchWaitedUsers(&param.MatchWaitedUsersRequest{})
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	_, err := s.matchSvc.MatchWaitedUsers(ctx, &param.MatchWaitedUsersRequest{})
+	if err != nil {
+		// TODO: log err
+		// TODO: update metrics
+		log.Println("Error getting match waited users:", err)
+	}
 }

@@ -4,6 +4,7 @@ type Category string
 
 const (
 	FootballCategory Category = "football"
+	HistoryCategory  Category = "history"
 )
 
 func (c Category) IsValid() bool {
@@ -12,4 +13,11 @@ func (c Category) IsValid() bool {
 		return true
 	}
 	return false
+}
+
+func CategoryList() []Category {
+	return []Category{
+		FootballCategory,
+		HistoryCategory,
+	}
 }
