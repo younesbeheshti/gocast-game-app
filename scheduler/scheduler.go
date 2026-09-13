@@ -32,7 +32,6 @@ func New(matchSvc matchingservice.Service, config Config) Scheduler {
 	}
 }
 func (s Scheduler) Start(ctx context.Context, wg *sync.WaitGroup) {
-
 	defer wg.Done()
 
 	j, err := s.sch.NewJob(
@@ -44,9 +43,9 @@ func (s Scheduler) Start(ctx context.Context, wg *sync.WaitGroup) {
 		return
 	}
 
-	fmt.Println("Starting job", j.ID())
-
 	s.sch.Start()
+
+	fmt.Println("Scheduler started:", j.ID())
 
 	<-ctx.Done()
 

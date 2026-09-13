@@ -23,7 +23,6 @@ func New(cfg Config) *RedisAdapter {
 		Password: cfg.Password,
 		DB:       cfg.DB,
 	})
-
 	return &RedisAdapter{client: client}
 }
 

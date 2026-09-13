@@ -21,11 +21,11 @@ redis:
   db: 0
 
 matching_service:
-  waiting_timeout: "2m"
+  waiting_timeout: "2m
 
 presence_service:
   expiration_time: "60m"
   prefix: "presence"
 
 scheduler:
-  match_waited_users_interval_in_seconds: 30
+  match_waited_users_interval_in_seconds: 30s

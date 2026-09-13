@@ -45,8 +45,19 @@ func main() {
 	mgr := migrator.New(cfg.Psql)
 	mgr.Up()
 
+	presenceGrpcConn, err := grpc.NewClient(
+		":8000",
+		grpc.WithTransportCredentials(
+			insecure.NewCredentials(),
+		),
+	)
+	if err != nil {
+		panic(err)
+	}
+	defer presenceGrpcConn.Close()
+
 	// TODO - create struct and add these returned items as struct field
-	userSvc, authSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV, presenceSvc := setupServices(cfg)
+	userSvc, authSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV, presenceSvc := setupServices(cfg, presenceGrpcConn)
 
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
@@ -76,7 +87,7 @@ func main() {
 
 }
 
-func setupServices(cfg config.Config) (
+func setupServices(cfg config.Config, presenceGrpcConn *grpc.ClientConn) (
 	userservice.Service, authservice.Service, uservalidator.Validator,
 	backofficeuserservice.Service, authorizationservice.Service,
 	matchingservice.Service, matchingvalidator.Validator, presenceservice.Service) {
@@ -104,18 +115,7 @@ func setupServices(cfg config.Config) (
 
 	// TODO: panic - replace presenceSve with presence grpc client
 
-	conn, err := grpc.NewClient(
-		":8000",
-		grpc.WithTransportCredentials(
-			insecure.NewCredentials(),
-		),
-	)
-	if err != nil {
-		panic(err)
-	}
-	defer conn.Close()
-
-	presenceAdapter := presenceClient.New(conn)
+	presenceAdapter := presenceClient.New(presenceGrpcConn)
 
 	matchingSvc := matchingservice.New(cfg.MatchingService, matchingRepo, presenceAdapter)
 

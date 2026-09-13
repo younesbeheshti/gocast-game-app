@@ -32,14 +32,12 @@ func (d *DB) AddToWaitingList(userID uint, category entity.Category) error {
 func (d *DB) GetWaitingListByCategory(ctx context.Context, category entity.Category) ([]entity.WaitingMember, error) {
 	const op = "redis.matching.GetWaitingListByCategory"
 
-	min := fmt.Sprintf("%d", timestamp.Add(-2*time.Hour))
+	min := fmt.Sprintf("%d", timestamp.Add(-2000000*time.Hour))
 	max := fmt.Sprintf("%d", timestamp.Now())
 
 	list, err := d.adapter.Client().ZRangeByScoreWithScores(ctx, getCategory(category), &redis.ZRangeBy{
-		Min:    min,
-		Max:    max,
-		Offset: 0,
-		Count:  0,
+		Min: min,
+		Max: max,
 	}).Result()
 
 	if err != nil {
