@@ -7,6 +7,7 @@ import (
 	"github.com/younesbeheshti/gocast_game/param"
 	"github.com/younesbeheshti/gocast_game/service/matchingservice"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -30,7 +31,10 @@ func New(matchSvc matchingservice.Service, config Config) Scheduler {
 		config:   config,
 	}
 }
-func (s Scheduler) Start(ctx context.Context) {
+func (s Scheduler) Start(ctx context.Context, wg *sync.WaitGroup) {
+
+	defer wg.Done()
+
 	j, err := s.sch.NewJob(
 		gocron.DurationJob(s.config.MatchWaitedUsersIntervalInSeconds),
 		gocron.NewTask(s.MatchWaitedUsers),

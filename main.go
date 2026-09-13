@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	presenceClient "github.com/younesbeheshti/gocast_game/adapter/presence"
 	"github.com/younesbeheshti/gocast_game/adapter/redis"
 	"github.com/younesbeheshti/gocast_game/config"
 	"github.com/younesbeheshti/gocast_game/delivery/httpserver"
@@ -21,9 +22,12 @@ import (
 	"github.com/younesbeheshti/gocast_game/service/userservice"
 	"github.com/younesbeheshti/gocast_game/validator/matchingvalidator"
 	"github.com/younesbeheshti/gocast_game/validator/uservalidator"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 )
 
@@ -51,9 +55,11 @@ func main() {
 	)
 	defer stop()
 
+	var wg sync.WaitGroup
 	go func() {
+		wg.Add(1)
 		sch := scheduler.New(matchingSvc, cfg.Scheduler)
-		sch.Start(ctx)
+		sch.Start(ctx, &wg)
 	}()
 
 	server := httpserver.
@@ -93,10 +99,25 @@ func setupServices(cfg config.Config) (
 	redisAdapter := redis.New(cfg.Redis)
 	matchingRepo := redismatching.New(redisAdapter)
 
-	// TODO: panic - replace nil with presence client
-	matchingSvc := matchingservice.New(cfg.MatchingService, matchingRepo, nil)
 	presenceRepo := redispresence.New(redisAdapter)
 	presenceSvc := presenceservice.New(cfg.PresenceService, presenceRepo)
+
+	// TODO: panic - replace presenceSve with presence grpc client
+
+	conn, err := grpc.NewClient(
+		":8000",
+		grpc.WithTransportCredentials(
+			insecure.NewCredentials(),
+		),
+	)
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+
+	presenceAdapter := presenceClient.New(conn)
+
+	matchingSvc := matchingservice.New(cfg.MatchingService, matchingRepo, presenceAdapter)
 
 	return userSvc, authSvc, uV, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV, presenceSvc
 }
