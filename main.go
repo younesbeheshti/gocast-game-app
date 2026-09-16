@@ -117,7 +117,7 @@ func setupServices(cfg config.Config, presenceGrpcConn *grpc.ClientConn) (
 
 	presenceAdapter := presenceClient.New(presenceGrpcConn)
 
-	matchingSvc := matchingservice.New(cfg.MatchingService, matchingRepo, presenceAdapter)
+	matchingSvc := matchingservice.New(cfg.MatchingService, matchingRepo, presenceAdapter, nil)
 
 	return userSvc, authSvc, uV, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV, presenceSvc
 }

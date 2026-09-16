@@ -7,6 +7,7 @@ import (
 	"github.com/younesbeheshti/gocast_game/entity"
 	"github.com/younesbeheshti/gocast_game/pkg/richerror"
 	"github.com/younesbeheshti/gocast_game/pkg/timestamp"
+	"log"
 	"strconv"
 	"time"
 )
@@ -56,6 +57,27 @@ func (d *DB) GetWaitingListByCategory(ctx context.Context, category entity.Categ
 	}
 
 	return result, nil
+}
+
+func (d *DB) RemoveUsersFromWaitingList(category entity.Category, userIDs []uint) {
+	const op = "redis.matching.RemoveUsersFromWaitingList"
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	members := make([]any, 0)
+	for _, u := range userIDs {
+		members = append(members, strconv.Itoa(int(u)))
+	}
+
+	numberOfRemovedMember, err := d.adapter.Client().ZRem(ctx, getCategory(category), members...).Result()
+	if err != nil {
+		log.Println("Error removing users:", err)
+		// TODO: log metrics
+	}
+
+	log.Printf("Removed %d users from waited list", numberOfRemovedMember)
+	// TODO: log metrics
+
 }
 
 func getCategory(category entity.Category) string {
