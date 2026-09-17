@@ -3,7 +3,7 @@ package presenceserver
 import (
 	"context"
 	"fmt"
-	"github.com/younesbeheshti/gocast_game/contract/golang/presence"
+	"github.com/younesbeheshti/gocast_game/contract/protogolang/presence"
 	"github.com/younesbeheshti/gocast_game/param"
 	"github.com/younesbeheshti/gocast_game/pkg/protobuf"
 	"github.com/younesbeheshti/gocast_game/pkg/slice"

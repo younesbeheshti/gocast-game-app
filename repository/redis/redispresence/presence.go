@@ -3,6 +3,7 @@ package redispresence
 import (
 	"context"
 	"github.com/younesbeheshti/gocast_game/pkg/richerror"
+	"github.com/younesbeheshti/gocast_game/pkg/timestamp"
 	"time"
 )
 
@@ -15,4 +16,16 @@ func (d *DB) Upsert(ctx context.Context, key string, timestamp int64, expTime ti
 	}
 
 	return nil
+}
+
+func (d *DB) GetPresence(ctx context.Context, prefixKey string, userIDs []uint) (map[uint]int64, error) {
+	const op = richerror.Op("redispresence.GetPresence")
+
+	m := make(map[uint]int64)
+
+	for _, userID := range userIDs {
+		m[userID] = timestamp.Add(time.Millisecond * -100)
+	}
+
+	return m, nil
 }

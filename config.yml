@@ -28,4 +28,4 @@ presence_service:
   prefix: "presence"
 
 scheduler:
-  match_waited_users_interval_in_seconds: 30s
+  match_waited_users_interval_in_seconds: 10s

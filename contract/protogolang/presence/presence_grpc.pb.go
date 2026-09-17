@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v6.30.2
-// source: contract/presence/presence.proto
+// source: contract/protobuf/presence/presence.proto
 
 package presence
 
@@ -117,5 +117,5 @@ var PresenceService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "contract/presence/presence.proto",
+	Metadata: "contract/protobuf/presence/presence.proto",
 }

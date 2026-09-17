@@ -15,6 +15,7 @@ type Config struct {
 
 type Repository interface {
 	Upsert(ctx context.Context, key string, timestamp int64, expTime time.Duration) error
+	GetPresence(ctx context.Context, key string, userIDs []uint) (map[uint]int64, error)
 }
 
 type Service struct {
@@ -45,8 +46,17 @@ func (s Service) GetPresence(ctx context.Context, req *param.GetPresenceRequest)
 	fmt.Println(op, "req:", req)
 
 	// TODO - implement me
-	return &param.GetPresenceResponse{Items: []param.GetPresenceItem{
-		{UserID: 1, Timestamp: 12312312},
-		{UserID: 2, Timestamp: 12332132},
-	}}, nil
+	list, err := s.repo.GetPresence(ctx, s.config.Prefix, req.UserIDs)
+	if err != nil {
+		return nil, richerror.New(op).WithErr(err).WithKind(richerror.KindUnexpected)
+	}
+
+	resp := param.GetPresenceResponse{}
+	for k, v := range list {
+		resp.Items = append(resp.Items, param.GetPresenceItem{
+			UserID:    k,
+			Timestamp: v,
+		})
+	}
+	return &resp, nil
 }

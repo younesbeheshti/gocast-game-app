@@ -1,7 +1,7 @@
 package protobuf
 
 import (
-	"github.com/younesbeheshti/gocast_game/contract/golang/presence"
+	"github.com/younesbeheshti/gocast_game/contract/protogolang/presence"
 	"github.com/younesbeheshti/gocast_game/param"
 )
 

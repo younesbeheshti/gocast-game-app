@@ -3,6 +3,7 @@ package matchingservice
 import (
 	"context"
 	"fmt"
+	"github.com/younesbeheshti/gocast_game/contract/broker"
 	"github.com/younesbeheshti/gocast_game/entity"
 	"github.com/younesbeheshti/gocast_game/param"
 	"github.com/younesbeheshti/gocast_game/pkg/protobufencoder"
@@ -12,10 +13,6 @@ import (
 	"sync"
 	"time"
 )
-
-type Publisher interface {
-	Publish(event entity.Event, payload string)
-}
 
 type Repository interface {
 	AddToWaitingList(userID uint, category entity.Category) error
@@ -35,10 +32,10 @@ type Service struct {
 	repo           Repository
 	config         Config
 	presenceClient PresenceClient
-	pub            Publisher
+	pub            broker.Publisher
 }
 
-func New(cfg Config, repo Repository, presenceClient PresenceClient, pub Publisher) Service {
+func New(cfg Config, repo Repository, presenceClient PresenceClient, pub broker.Publisher) Service {
 	return Service{config: cfg, repo: repo, presenceClient: presenceClient, pub: pub}
 }
 
@@ -96,7 +93,7 @@ func (s Service) match(ctx context.Context, category entity.Category, wg *sync.W
 		return
 	}
 
-	presenceUserIDs := make([]uint, len(list))
+	presenceUserIDs := make([]uint, 0)
 	for _, u := range presenceList.Items {
 		presenceUserIDs = append(presenceUserIDs, u.UserID)
 	}
@@ -116,11 +113,15 @@ func (s Service) match(ctx context.Context, category entity.Category, wg *sync.W
 
 	}
 
+	if len(finalList) < 2 {
+		return
+	}
+
 	go s.repo.RemoveUsersFromWaitingList(category, toBeRemovedUser)
 
 	matchedUsersToBeRemoved := make([]uint, 0)
-	for i := 0; i < len(list)-1; i = +2 {
 
+	for i := 0; i < len(finalList)-1; i += 2 {
 		mu := entity.MatchedPlayers{
 			Category: category,
 			UserIDs:  []uint{finalList[i].UserID, finalList[i+1].UserID},
@@ -134,7 +135,7 @@ func (s Service) match(ctx context.Context, category entity.Category, wg *sync.W
 		matchedUsersToBeRemoved = append(matchedUsersToBeRemoved, mu.UserIDs...)
 	}
 
-	go s.repo.RemoveUsersFromWaitingList(category, toBeRemovedUser)
+	go s.repo.RemoveUsersFromWaitingList(category, matchedUsersToBeRemoved)
 
 }
 

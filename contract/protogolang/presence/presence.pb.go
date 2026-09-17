@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.12
 // 	protoc        v6.30.2
-// source: contract/presence/presence.proto
+// source: contract/protobuf/presence/presence.proto
 
 package presence
 
@@ -30,7 +30,7 @@ type GetPresenceRequest struct {
 
 func (x *GetPresenceRequest) Reset() {
 	*x = GetPresenceRequest{}
-	mi := &file_contract_presence_presence_proto_msgTypes[0]
+	mi := &file_contract_protobuf_presence_presence_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -42,7 +42,7 @@ func (x *GetPresenceRequest) String() string {
 func (*GetPresenceRequest) ProtoMessage() {}
 
 func (x *GetPresenceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_presence_presence_proto_msgTypes[0]
+	mi := &file_contract_protobuf_presence_presence_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,7 +55,7 @@ func (x *GetPresenceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPresenceRequest.ProtoReflect.Descriptor instead.
 func (*GetPresenceRequest) Descriptor() ([]byte, []int) {
-	return file_contract_presence_presence_proto_rawDescGZIP(), []int{0}
+	return file_contract_protobuf_presence_presence_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GetPresenceRequest) GetUserIds() []uint64 {
@@ -74,7 +74,7 @@ type GetPresenceResponse struct {
 
 func (x *GetPresenceResponse) Reset() {
 	*x = GetPresenceResponse{}
-	mi := &file_contract_presence_presence_proto_msgTypes[1]
+	mi := &file_contract_protobuf_presence_presence_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -86,7 +86,7 @@ func (x *GetPresenceResponse) String() string {
 func (*GetPresenceResponse) ProtoMessage() {}
 
 func (x *GetPresenceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_presence_presence_proto_msgTypes[1]
+	mi := &file_contract_protobuf_presence_presence_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -99,7 +99,7 @@ func (x *GetPresenceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPresenceResponse.ProtoReflect.Descriptor instead.
 func (*GetPresenceResponse) Descriptor() ([]byte, []int) {
-	return file_contract_presence_presence_proto_rawDescGZIP(), []int{1}
+	return file_contract_protobuf_presence_presence_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GetPresenceResponse) GetItems() []*GetPresenceItem {
@@ -119,7 +119,7 @@ type GetPresenceItem struct {
 
 func (x *GetPresenceItem) Reset() {
 	*x = GetPresenceItem{}
-	mi := &file_contract_presence_presence_proto_msgTypes[2]
+	mi := &file_contract_protobuf_presence_presence_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -131,7 +131,7 @@ func (x *GetPresenceItem) String() string {
 func (*GetPresenceItem) ProtoMessage() {}
 
 func (x *GetPresenceItem) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_presence_presence_proto_msgTypes[2]
+	mi := &file_contract_protobuf_presence_presence_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -144,7 +144,7 @@ func (x *GetPresenceItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPresenceItem.ProtoReflect.Descriptor instead.
 func (*GetPresenceItem) Descriptor() ([]byte, []int) {
-	return file_contract_presence_presence_proto_rawDescGZIP(), []int{2}
+	return file_contract_protobuf_presence_presence_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetPresenceItem) GetUserId() uint64 {
@@ -161,11 +161,11 @@ func (x *GetPresenceItem) GetTimestamp() int64 {
 	return 0
 }
 
-var File_contract_presence_presence_proto protoreflect.FileDescriptor
+var File_contract_protobuf_presence_presence_proto protoreflect.FileDescriptor
 
-const file_contract_presence_presence_proto_rawDesc = "" +
+const file_contract_protobuf_presence_presence_proto_rawDesc = "" +
 	"\n" +
-	" contract/presence/presence.proto\x12\bpresence\"/\n" +
+	")contract/protobuf/presence/presence.proto\x12\bpresence\"/\n" +
 	"\x12GetPresenceRequest\x12\x19\n" +
 	"\buser_ids\x18\x01 \x03(\x04R\auserIds\"F\n" +
 	"\x13GetPresenceResponse\x12/\n" +
@@ -174,27 +174,27 @@ const file_contract_presence_presence_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\x04R\x06userId\x12\x1c\n" +
 	"\ttimestamp\x18\x02 \x01(\x03R\ttimestamp2]\n" +
 	"\x0fPresenceService\x12J\n" +
-	"\vGetPresence\x12\x1c.presence.GetPresenceRequest\x1a\x1d.presence.GetPresenceResponseB\x1aZ\x18contract/golang/presenceb\x06proto3"
+	"\vGetPresence\x12\x1c.presence.GetPresenceRequest\x1a\x1d.presence.GetPresenceResponseB\x1fZ\x1dcontract/protogolang/presenceb\x06proto3"
 
 var (
-	file_contract_presence_presence_proto_rawDescOnce sync.Once
-	file_contract_presence_presence_proto_rawDescData []byte
+	file_contract_protobuf_presence_presence_proto_rawDescOnce sync.Once
+	file_contract_protobuf_presence_presence_proto_rawDescData []byte
 )
 
-func file_contract_presence_presence_proto_rawDescGZIP() []byte {
-	file_contract_presence_presence_proto_rawDescOnce.Do(func() {
-		file_contract_presence_presence_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_contract_presence_presence_proto_rawDesc), len(file_contract_presence_presence_proto_rawDesc)))
+func file_contract_protobuf_presence_presence_proto_rawDescGZIP() []byte {
+	file_contract_protobuf_presence_presence_proto_rawDescOnce.Do(func() {
+		file_contract_protobuf_presence_presence_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_contract_protobuf_presence_presence_proto_rawDesc), len(file_contract_protobuf_presence_presence_proto_rawDesc)))
 	})
-	return file_contract_presence_presence_proto_rawDescData
+	return file_contract_protobuf_presence_presence_proto_rawDescData
 }
 
-var file_contract_presence_presence_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_contract_presence_presence_proto_goTypes = []any{
+var file_contract_protobuf_presence_presence_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_contract_protobuf_presence_presence_proto_goTypes = []any{
 	(*GetPresenceRequest)(nil),  // 0: presence.GetPresenceRequest
 	(*GetPresenceResponse)(nil), // 1: presence.GetPresenceResponse
 	(*GetPresenceItem)(nil),     // 2: presence.GetPresenceItem
 }
-var file_contract_presence_presence_proto_depIdxs = []int32{
+var file_contract_protobuf_presence_presence_proto_depIdxs = []int32{
 	2, // 0: presence.GetPresenceResponse.items:type_name -> presence.GetPresenceItem
 	0, // 1: presence.PresenceService.GetPresence:input_type -> presence.GetPresenceRequest
 	1, // 2: presence.PresenceService.GetPresence:output_type -> presence.GetPresenceResponse
@@ -205,26 +205,26 @@ var file_contract_presence_presence_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_contract_presence_presence_proto_init() }
-func file_contract_presence_presence_proto_init() {
-	if File_contract_presence_presence_proto != nil {
+func init() { file_contract_protobuf_presence_presence_proto_init() }
+func file_contract_protobuf_presence_presence_proto_init() {
+	if File_contract_protobuf_presence_presence_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_contract_presence_presence_proto_rawDesc), len(file_contract_presence_presence_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_contract_protobuf_presence_presence_proto_rawDesc), len(file_contract_protobuf_presence_presence_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_contract_presence_presence_proto_goTypes,
-		DependencyIndexes: file_contract_presence_presence_proto_depIdxs,
-		MessageInfos:      file_contract_presence_presence_proto_msgTypes,
+		GoTypes:           file_contract_protobuf_presence_presence_proto_goTypes,
+		DependencyIndexes: file_contract_protobuf_presence_presence_proto_depIdxs,
+		MessageInfos:      file_contract_protobuf_presence_presence_proto_msgTypes,
 	}.Build()
-	File_contract_presence_presence_proto = out.File
-	file_contract_presence_presence_proto_goTypes = nil
-	file_contract_presence_presence_proto_depIdxs = nil
+	File_contract_protobuf_presence_presence_proto = out.File
+	file_contract_protobuf_presence_presence_proto_goTypes = nil
+	file_contract_protobuf_presence_presence_proto_depIdxs = nil
 }
