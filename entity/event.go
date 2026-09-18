@@ -4,4 +4,5 @@ type Event string
 
 const (
 	MatchingUsersMatchedEvent Event = "matching.users_matched"
+	NotificationEvent         Event = "notification.user_notification"
 )

@@ -5,6 +5,7 @@ go 1.25.11
 require (
 	github.com/go-co-op/gocron/v2 v2.22.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
+	github.com/gobwas/ws v1.4.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/knadh/koanf/parsers/yaml v1.1.1
 	github.com/knadh/koanf/providers/confmap v1.0.1
@@ -16,7 +17,6 @@ require (
 	github.com/lib/pq v1.12.3
 	github.com/redis/go-redis/v9 v9.22.0
 	github.com/rubenv/sql-migrate v1.8.1
-	github.com/thoas/go-funk v0.9.3
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.11
 )
@@ -26,6 +26,8 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
+	github.com/gobwas/httphead v0.1.0 // indirect
+	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
 	github.com/knadh/koanf/maps v0.1.3 // indirect

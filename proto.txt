@@ -6,3 +6,8 @@ protoc --go_out=. \
 protoc --go_out=. \
     --go-grpc_out=. \
     contract/protobuf/matching/matching.proto
+
+
+protoc --go_out=. \
+    --go-grpc_out=. \
+    contract/protobuf/notification/notification.proto
