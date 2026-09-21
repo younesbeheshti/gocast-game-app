@@ -9,6 +9,7 @@ import (
 	"github.com/younesbeheshti/gocast_game/delivery/httpserver/backofficeuserhandler"
 	"github.com/younesbeheshti/gocast_game/delivery/httpserver/matchinghandler"
 	"github.com/younesbeheshti/gocast_game/delivery/httpserver/userhandler"
+	"github.com/younesbeheshti/gocast_game/logger"
 	"github.com/younesbeheshti/gocast_game/service/authorizationservice"
 	"github.com/younesbeheshti/gocast_game/service/authservice"
 	"github.com/younesbeheshti/gocast_game/service/backofficeuserservice"
@@ -17,6 +18,7 @@ import (
 	"github.com/younesbeheshti/gocast_game/service/userservice"
 	"github.com/younesbeheshti/gocast_game/validator/matchingvalidator"
 	"github.com/younesbeheshti/gocast_game/validator/uservalidator"
+	"go.uber.org/zap"
 )
 
 type Server struct {
@@ -46,7 +48,41 @@ func (s Server) Serve(ctx context.Context) error {
 		},
 	}
 
-	e.Use(middleware.RequestLogger())
+	e.Use(middleware.RequestID())
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogURI:           true,
+		LogStatus:        true,
+		LogContentLength: true,
+		LogRequestID:     true,
+		LogHost:          true,
+		LogMethod:        true,
+		LogLatency:       true,
+		LogRemoteIP:      true,
+		LogResponseSize:  true,
+		LogProtocol:      true,
+		HandleError:      true,
+		LogValuesFunc: func(c *echo.Context, v middleware.RequestLoggerValues) error {
+			errMsg := ""
+			if v.Error != nil {
+				errMsg = v.Error.Error()
+			}
+			logger.Logger.Named("http-server").Info(
+				"request",
+				zap.String("request_id", v.RequestID),
+				zap.String("host", v.Host),
+				zap.String("content-length", v.ContentLength),
+				zap.String("protocol", v.Protocol),
+				zap.String("method", v.Method),
+				zap.Duration("latency", v.Latency),
+				zap.String("error", errMsg),
+				zap.String("remote_ip", v.RemoteIP),
+				zap.Int64("response_size", v.ResponseSize),
+				zap.String("uri", v.URI),
+				zap.Int("status", v.Status),
+			)
+			return nil
+		},
+	}))
 	e.Use(middleware.Recover())
 
 	e.GET("/health_check", s.healthCheck)

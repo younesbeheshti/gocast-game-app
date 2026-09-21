@@ -7,6 +7,7 @@ import (
 	"github.com/younesbeheshti/gocast_game/adapter/redis"
 	"github.com/younesbeheshti/gocast_game/config"
 	"github.com/younesbeheshti/gocast_game/delivery/httpserver"
+	"github.com/younesbeheshti/gocast_game/logger"
 	"github.com/younesbeheshti/gocast_game/repository/migrator"
 	"github.com/younesbeheshti/gocast_game/repository/postgres"
 	psqlaccesscontrol "github.com/younesbeheshti/gocast_game/repository/postgres/accesscontrol"
@@ -22,6 +23,7 @@ import (
 	"github.com/younesbeheshti/gocast_game/service/userservice"
 	"github.com/younesbeheshti/gocast_game/validator/matchingvalidator"
 	"github.com/younesbeheshti/gocast_game/validator/uservalidator"
+	"go.uber.org/zap"
 	"log"
 	"os"
 	"os/signal"
@@ -37,15 +39,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(cfg)
+	logger.Logger.Named("main").Info("config", zap.Any("config", cfg))
 
 	// TODO - add command for apply
 	mgr := migrator.New(cfg.Psql)
 	mgr.Up()
-
 	// TODO - create struct and add these returned items as struct field
 	userSvc, authSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV, presenceSvc := setupServices(cfg)
-	
+
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
 		os.Interrupt,
