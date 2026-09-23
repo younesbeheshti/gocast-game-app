@@ -25,13 +25,23 @@ import (
 	"github.com/younesbeheshti/gocast_game/validator/uservalidator"
 	"go.uber.org/zap"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+
+	_ "net/http/pprof"
 )
 
 func main() {
+
+	go func() {
+		// TODO: add enabler config variable
+		// curl http://localhost:8099/debug/pprof/goroutine --output goroutings.o
+		// go tool pprof -http=:8081 goroutings.o
+		http.ListenAndServe(":8099", nil)
+	}()
 
 	//TODO: read cofig path from command line
 
